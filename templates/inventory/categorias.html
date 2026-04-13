@@ -1,1 +1,128 @@
  
+{% extends "base.html" %}
+{% block title %}Categorias{% endblock %}
+{% block content %}
+
+<div class="ph">
+  <div>
+    <div class="ph-eyebrow">Inventario</div>
+    <div class="ph-title">Categorias</div>
+    <div class="ph-sub">{{ categorias|length }} categorias activas</div>
+  </div>
+  {% if request.user.es_admin %}
+  <div class="ph-actions">
+    <button onclick="document.getElementById('modal-cat').style.display='flex'"
+      class="btn btn-primary">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+        stroke="white" stroke-width="2">
+        <path d="M8 2v12M2 8h12" stroke-linecap="round"/>
+      </svg>
+      Nueva categoria
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+{% if messages %}
+  {% for msg in messages %}
+  <div class="msg {% if msg.tags == 'success' %}msg-ok{% else %}msg-error{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+{% endif %}
+
+<div class="panel">
+  <div class="panel-header">
+    <span class="panel-title">Lista de categorias</span>
+  </div>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Descripcion</th>
+        <th style="text-align:center">Productos</th>
+        {% if request.user.es_admin %}<th></th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat in categorias %}
+      <tr>
+        <td style="font-weight:600;color:#1a0808">{{ cat.nombre }}</td>
+        <td style="color:#7a3a3a">{{ cat.descripcion|default:"-" }}</td>
+        <td style="text-align:center">
+          <span class="pill pill-ok">{{ cat.productos.count }}</span>
+        </td>
+        {% if request.user.es_admin %}
+        <td style="text-align:right">
+          <form method="POST"
+            action="{% url 'eliminar_categoria' cat.id %}"
+            style="display:inline"
+            onsubmit="return confirm('Eliminar categoria {{ cat.nombre }}?')">
+            {% csrf_token %}
+            <button type="submit" class="btn"
+              style="color:#DC2626;border-color:#FEE2E2;
+              background:#FEE2E2;font-size:11px;padding:4px 10px">
+              Eliminar
+            </button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" style="text-align:center;padding:40px;
+          color:#b07070">
+          No hay categorias registradas
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if request.user.es_admin %}
+<!-- MODAL NUEVA CATEGORIA -->
+<div id="modal-cat" style="display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.4);z-index:100;
+  align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px;
+    width:100%;max-width:420px;margin:20px">
+    <div style="font-size:16px;font-weight:700;color:#1a0808;
+      margin-bottom:20px">Nueva categoria</div>
+    <form method="POST" action="{% url 'crear_categoria' %}">
+      {% csrf_token %}
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;
+        letter-spacing:0.05em;margin-bottom:6px">
+        Nombre
+      </label>
+      <input type="text" name="nombre" required
+        style="width:100%;border:1px solid #F0E0E0;
+        border-radius:8px;padding:10px 14px;
+        font-size:13px;margin-bottom:16px;
+        font-family:'Montserrat',sans-serif;outline:none">
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;
+        letter-spacing:0.05em;margin-bottom:6px">
+        Descripcion (opcional)
+      </label>
+      <input type="text" name="descripcion"
+        style="width:100%;border:1px solid #F0E0E0;
+        border-radius:8px;padding:10px 14px;
+        font-size:13px;margin-bottom:24px;
+        font-family:'Montserrat',sans-serif;outline:none">
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn"
+          onclick="document.getElementById('modal-cat').style.display='none'">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+          Crear categoria
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

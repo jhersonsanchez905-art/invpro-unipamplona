@@ -32,3 +32,43 @@ def vista_categorias(request):
     return render(request, 'inventory/categorias.html', {
         'categorias': categorias,
     })
+
+@login_required
+def vista_categorias(request):
+    from apps.inventory.models import Categoria
+    categorias = Categoria.objects.filter(
+        is_active=True
+    ).prefetch_related('productos')
+    return render(request, 'inventory/categorias.html',
+        {'categorias': categorias})
+
+@login_required
+def crear_categoria(request):
+    from apps.inventory.models import Categoria
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        desc   = request.POST.get('descripcion', '').strip()
+        if not nombre:
+            messages.error(request, 'El nombre es obligatorio')
+            return redirect('categorias')
+        if Categoria.objects.filter(nombre=nombre).exists():
+            messages.error(request,
+                f'La categoria {nombre} ya existe')
+            return redirect('categorias')
+        Categoria.objects.create(nombre=nombre, descripcion=desc)
+        messages.success(request,
+            f'Categoria {nombre} creada correctamente')
+    return redirect('categorias')
+
+@login_required
+def eliminar_categoria(request, pk):
+    from apps.inventory.models import Categoria
+    try:
+        cat = Categoria.objects.get(pk=pk)
+        cat.is_active = False
+        cat.save()
+        messages.success(request,
+            f'Categoria {cat.nombre} eliminada')
+    except Categoria.DoesNotExist:
+        messages.error(request, 'Categoria no encontrada')
+    return redirect('categorias')

@@ -101,19 +101,3 @@ import dj_database_url
 DATABASE_URL = config('DATABASE_URL', default=None)
 if DATABASE_URL:
     DATABASES['default'] = dj_database_url.parse(DATABASE_URL)
-
-# Crear superusuario automaticamente en produccion
-import os
-if config('CREATE_SUPERUSER', default=None):
-    from django.db import connection
-    try:
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        if not User.objects.filter(username='admin').exists():
-            User.objects.create_superuser(
-                username='admin',
-                email='admin@unipamplona.edu.co',
-                password='Admin1234!'
-            )
-    except Exception:
-        pass
