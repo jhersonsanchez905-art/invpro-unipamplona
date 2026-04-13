@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'tailwind',
+    'theme',
     'apps.accounts',
     'apps.inventory',
     'apps.movements',
