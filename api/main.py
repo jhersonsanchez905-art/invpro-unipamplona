@@ -197,6 +197,96 @@ def _eliminar_producto(producto_id):
     except Producto.DoesNotExist:
         raise HTTPException(status_code=404, detail='Producto no encontrado')
 
+# ── MOVIMIENTOS — REGISTRAR ───────────────────────────────────────
+class MovimientoCreate(BaseModel):
+    tipo:        str
+    producto_id: str
+    cantidad:    float
+    nota:        Optional[str] = ''
+
+class MovimientoResponse(BaseModel):
+    id:         str
+    tipo:       str
+    producto:   str
+    cantidad:   float
+    nota:       str
+    usuario:    str
+    created_at: str
+
+@app.post("/v1/movimientos/", status_code=201)
+async def registrar_movimiento(
+    data: MovimientoCreate,
+    username: str = "admin"
+):
+    return await sync_to_async(_registrar_movimiento)(data, username)
+
+def _registrar_movimiento(data, username):
+    from apps.movements.services import registrar_movimiento
+    from apps.accounts.models import CustomUser
+    from django.core.exceptions import ValidationError
+
+    tipos_validos = ['entrada', 'salida', 'ajuste']
+    if data.tipo not in tipos_validos:
+        raise HTTPException(
+            status_code=400,
+            detail=f'Tipo invalido. Use: {tipos_validos}')
+
+    try:
+        usuario = CustomUser.objects.get(username=username)
+    except CustomUser.DoesNotExist:
+        raise HTTPException(
+            status_code=404,
+            detail=f'Usuario {username} no encontrado')
+
+    try:
+        mov = registrar_movimiento(
+            tipo=data.tipo,
+            producto_id=data.producto_id,
+            cantidad=data.cantidad,
+            usuario=usuario,
+            nota=data.nota or '',
+        )
+        return {
+            "id":         str(mov.id),
+            "tipo":       mov.tipo,
+            "producto":   mov.producto.sku,
+            "cantidad":   float(mov.cantidad),
+            "nota":       mov.nota,
+            "usuario":    mov.usuario.username,
+            "created_at": mov.created_at.strftime('%d/%m/%Y %H:%M'),
+        }
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# ── MOVIMIENTOS — LISTAR ──────────────────────────────────────────
+@app.get("/v1/movimientos/")
+async def listar_movimientos(
+    tipo:   Optional[str] = None,
+    limite: int = 20,
+):
+    return await sync_to_async(_listar_movimientos)(tipo, limite)
+
+def _listar_movimientos(tipo, limite):
+    from apps.movements.models import Movimiento
+    qs = Movimiento.objects.select_related('producto', 'usuario')
+
+    if tipo:
+        qs = qs.filter(tipo=tipo)
+
+    qs = qs.order_by('-created_at')[:limite]
+
+    return [{
+        "id":         str(m.id),
+        "tipo":       m.tipo,
+        "producto":   m.producto.sku,
+        "producto_nombre": m.producto.nombre,
+        "cantidad":   float(m.cantidad),
+        "nota":       m.nota,
+        "usuario":    m.usuario.username,
+        "created_at": m.created_at.strftime('%d/%m/%Y %H:%M'),
+    } for m in qs]
+
+    
 # ── HELPER ────────────────────────────────────────────────────────
 def _producto_to_dict(p):
     return {
