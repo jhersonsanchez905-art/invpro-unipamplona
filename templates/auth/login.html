@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html><html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>InvPro · Login</title>
+  <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?
+    family=Montserrat:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+</head>
+<body class="min-h-screen flex items-center justify-center
+  bg-gradient-to-br from-white to-red-50 font-[Montserrat]">
+  <div class="w-full max-w-sm bg-white rounded-2xl
+    border border-red-100 p-8">
+     <div class="mb-6 text-center">
+      <div class="text-2xl font-bold text-[#AD3333]">InvPro</div>
+      <div class="text-sm text-[#7a3a3a] mt-1">Unipamplona</div>
+    </div>
+    <!-- SweetAlert2 para mensajes en ventana -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% if messages %}
+      {% for msg in messages %}
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Acceso Denegado',
+                text: '{{ msg }}',
+                confirmButtonColor: '#AD3333',
+                timer: 4000
+            });
+        </script>
+      {% endfor %}
+    {% endif %}
+    <form method="POST" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="text-xs font-medium text-[#3d1010]
+          uppercase tracking-wide">Usuario</label>
+        <input type="text" name="username" required
+          class="mt-1 w-full border border-red-100 rounded-lg
+          px-3 py-2 text-sm focus:ring-2 focus:ring-[#AD3333]">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-[#3d1010]
+          uppercase tracking-wide">Contraseña</label>
+        <input type="password" name="password" required
+          class="mt-1 w-full border border-red-100 rounded-lg
+          px-3 py-2 text-sm focus:ring-2 focus:ring-[#AD3333]">
+      </div>
+      <button type="submit"
+        class="w-full bg-[#AD3333] hover:bg-[#8C2020]
+        text-white font-semibold py-2.5 rounded-lg text-sm
+        transition-colors duration-200">
+        Ingresar al sistema
+      </button>
+    </form>
+  </div>
+</body></html>
