@@ -1,0 +1,88 @@
+from decimal import Decimal
+from django.db import transaction
+from django.core.exceptions import ValidationError
+from apps.inventory.models import Producto
+from apps.movements.models import Movimiento
+
+
+def registrar_movimiento(tipo, producto_id, cantidad, usuario, nota=''):
+    """
+    Registra un movimiento de inventario y actualiza el stock.
+    Lanza ValidationError si la operacion no es valida.
+    """
+    if cantidad <= 0:
+        raise ValidationError('La cantidad debe ser mayor a cero.')
+
+    try:
+        producto = Producto.objects.select_for_update().get(
+            id=producto_id, is_active=True
+        )
+    except Producto.DoesNotExist:
+        raise ValidationError('Producto no encontrado o inactivo.')
+
+    cantidad = Decimal(str(cantidad))
+
+    with transaction.atomic():
+        if tipo == Movimiento.ENTRADA:
+            producto.stock_actual += cantidad
+
+        elif tipo == Movimiento.SALIDA:
+            if producto.stock_actual < cantidad:
+                raise ValidationError(
+                    f'Stock insuficiente. '
+                    f'Disponible: {producto.stock_actual}, '
+                    f'Solicitado: {cantidad}'
+                )
+            producto.stock_actual -= cantidad
+
+        elif tipo == Movimiento.AJUSTE:
+            producto.stock_actual = cantidad
+
+        else:
+            raise ValidationError(f'Tipo de movimiento invalido: {tipo}')
+
+        producto.save(update_fields=['stock_actual', 'updated_at'])
+
+        movimiento = Movimiento.objects.create(
+            tipo=tipo,
+            producto=producto,
+            cantidad=cantidad,
+            nota=nota,
+            usuario=usuario,
+        )
+
+    return movimiento
+
+
+def obtener_resumen_movimientos(dias=7):
+    """
+    Retorna entradas y salidas de los ultimos N dias.
+    Usado por el endpoint del dashboard.
+    """
+    from django.utils import timezone
+    from django.db.models import Sum, Q
+    from datetime import timedelta
+
+    hoy = timezone.now().date()
+    desde = hoy - timedelta(days=dias - 1)
+
+    resultado = []
+    for i in range(dias):
+        fecha = desde + timedelta(days=i)
+        movs = Movimiento.objects.filter(created_at__date=fecha)
+
+        entradas = movs.filter(
+            tipo=Movimiento.ENTRADA
+        ).aggregate(total=Sum('cantidad'))['total'] or 0
+
+        salidas = movs.filter(
+            tipo=Movimiento.SALIDA
+        ).aggregate(total=Sum('cantidad'))['total'] or 0
+
+        resultado.append({
+            'fecha': fecha.strftime('%d/%m'),
+            'entradas': float(entradas),
+            'salidas': float(salidas),
+        })
+
+    return resultado
