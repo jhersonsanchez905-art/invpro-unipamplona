@@ -1,3 +1,22 @@
 from django.contrib import admin
+from .models import Movimiento
 
-# Register your models here.
+
+@admin.register(Movimiento)
+class MovimientoAdmin(admin.ModelAdmin):
+    list_display   = ('tipo', 'producto', 'cantidad',
+                      'usuario', 'created_at')
+    list_filter    = ('tipo', 'created_at')
+    search_fields  = ('producto__sku', 'producto__nombre')
+    readonly_fields = ('id', 'tipo', 'producto', 'cantidad',
+                       'nota', 'usuario', 'created_at')
+    ordering       = ('-created_at',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
