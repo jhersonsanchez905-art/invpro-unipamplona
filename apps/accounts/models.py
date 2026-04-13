@@ -13,7 +13,8 @@ class CustomUser(AbstractUser):
     rol = models.CharField(max_length=10, choices=ROL_CHOICES, default=CLIENTE)
 
     def es_admin(self):
-        return self.rol == self.ADMIN
+        return self.rol == self.ADMIN or self.is_superuser
+
 
     class Meta:
         verbose_name        = 'Usuario'

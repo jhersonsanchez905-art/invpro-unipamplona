@@ -1,6 +1,7 @@
 from pathlib import Path
 from decouple import config
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
@@ -15,6 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
     'tailwind',
     'theme',
@@ -22,6 +24,12 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.movements',
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -82,7 +90,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 TAILWIND_APP_NAME = 'theme'
 CORS_ALLOW_ALL_ORIGINS = True
 
-# Archivos estaticos del Admin en desarrollo
+# Archivos estaticos
 import os
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
