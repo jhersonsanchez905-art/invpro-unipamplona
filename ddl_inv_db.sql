@@ -8,13 +8,3 @@ CREATE DATABASE inv_db WITH
     TEMPLATE template0;
 
 GRANT ALL PRIVILEGES ON DATABASE inv_db TO admin_inv;
-
-
-from apps.accounts.models import CustomUser
-u = CustomUser.objects.create_user(
-    username="cliente2",
-    password="cliente1234",
-    rol=CustomUser.CLIENTE
-)
-u.save()
-exit()
