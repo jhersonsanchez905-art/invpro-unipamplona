@@ -71,10 +71,13 @@ def eliminar_producto(request, pk):
 @login_required
 def vista_movimientos(request):
     from apps.movements.models import Movimiento
+    from apps.inventory.models import Producto
     movimientos = Movimiento.objects.select_related(
         'producto', 'usuario').order_by('-created_at')[:50]
+    productos = Producto.objects.filter(is_active=True)
     return render(request, 'inventory/movimientos.html', {
         'movimientos': movimientos,
+        'productos':   productos,
     })
 
 
@@ -116,3 +119,32 @@ def eliminar_categoria(request, pk):
     except Categoria.DoesNotExist:
         messages.error(request, 'Categoria no encontrada')
     return redirect('categorias')
+
+@login_required
+def registrar_movimiento(request):
+    from apps.inventory.models import Producto
+    from apps.movements.services import registrar_movimiento as reg_mov
+    from django.core.exceptions import ValidationError
+
+    if request.method == 'POST':
+        tipo         = request.POST.get('tipo', '')
+        producto_id  = request.POST.get('producto_id', '')
+        cantidad     = request.POST.get('cantidad', 0)
+        nota         = request.POST.get('nota', '')
+
+        try:
+            mov = reg_mov(
+                tipo=tipo,
+                producto_id=producto_id,
+                cantidad=float(cantidad),
+                usuario=request.user,
+                nota=nota,
+            )
+            messages.success(request,
+                f'Movimiento {tipo} registrado — {mov.producto.sku}')
+        except ValidationError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+
+    return redirect('movimientos')

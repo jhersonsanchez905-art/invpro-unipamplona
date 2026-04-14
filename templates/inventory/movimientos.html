@@ -1,1 +1,154 @@
- 
+{% extends "base.html" %}
+{% block title %}Movimientos{% endblock %}
+{% block content %}
+
+<div class="ph">
+  <div>
+    <div class="ph-eyebrow">Inventario</div>
+    <div class="ph-title">Movimientos</div>
+    <div class="ph-sub">Registro de entradas, salidas y ajustes</div>
+  </div>
+  {% if request.user.es_admin %}
+  <div class="ph-actions">
+    <button onclick="document.getElementById('modal-mov').style.display='flex'"
+      class="btn btn-primary">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+        stroke="white" stroke-width="2">
+        <path d="M8 2v12M2 8h12" stroke-linecap="round"/>
+      </svg>
+      Registrar movimiento
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+{% if messages %}
+  {% for msg in messages %}
+  <div class="msg {% if msg.tags == 'success' %}msg-ok{% else %}msg-error{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+{% endif %}
+
+<div class="panel">
+  <div class="panel-header">
+    <span class="panel-title">Historial de movimientos</span>
+  </div>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Nota</th>
+        <th>Usuario</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in movimientos %}
+      <tr>
+        <td>
+          <span class="pill
+            {% if m.tipo == 'entrada' %}pill-ok
+            {% elif m.tipo == 'salida' %}pill-danger
+            {% else %}pill-warn{% endif %}">
+            {{ m.tipo }}
+          </span>
+        </td>
+        <td style="font-family:'JetBrains Mono',monospace;
+          font-size:11px;color:#AD3333">
+          {{ m.producto.sku }}</td>
+        <td style="font-weight:700;text-align:right">
+          {{ m.cantidad }}</td>
+        <td style="color:#7a3a3a">
+          {{ m.nota|default:"-" }}</td>
+        <td style="color:#7a3a3a">
+          {{ m.usuario.username }}</td>
+        <td style="font-size:11px;color:#7a3a3a">
+          {{ m.created_at|date:"d/m/Y H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;
+          padding:40px;color:#b07070">
+          No hay movimientos registrados
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if request.user.es_admin %}
+<!-- MODAL REGISTRAR MOVIMIENTO -->
+<div id="modal-mov" style="display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.4);z-index:100;
+  align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px;
+    width:100%;max-width:460px;margin:20px">
+    <div style="font-size:16px;font-weight:700;color:#1a0808;
+      margin-bottom:20px">Registrar movimiento</div>
+    <form method="POST" action="{% url 'registrar_movimiento' %}">
+      {% csrf_token %}
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;
+        letter-spacing:0.05em;margin-bottom:6px">Tipo</label>
+      <select name="tipo" required
+        style="width:100%;border:1px solid #F0E0E0;
+        border-radius:8px;padding:8px 12px;font-size:12px;
+        font-family:'Montserrat',sans-serif;
+        outline:none;margin-bottom:16px">
+        <option value="entrada">Entrada</option>
+        <option value="salida">Salida</option>
+        <option value="ajuste">Ajuste</option>
+      </select>
+
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;
+        letter-spacing:0.05em;margin-bottom:6px">Producto</label>
+      <select name="producto_id" required
+        style="width:100%;border:1px solid #F0E0E0;
+        border-radius:8px;padding:8px 12px;font-size:12px;
+        font-family:'Montserrat',sans-serif;
+        outline:none;margin-bottom:16px">
+        <option value="">Seleccionar...</option>
+        {% for p in productos %}
+        <option value="{{ p.id }}">{{ p.sku }} — {{ p.nombre }}</option>
+        {% endfor %}
+      </select>
+
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;
+        letter-spacing:0.05em;margin-bottom:6px">Cantidad</label>
+      <input type="number" name="cantidad" min="1" required
+        style="width:100%;border:1px solid #F0E0E0;
+        border-radius:8px;padding:8px 12px;font-size:12px;
+        font-family:'Montserrat',sans-serif;
+        outline:none;margin-bottom:16px">
+
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;
+        letter-spacing:0.05em;margin-bottom:6px">
+        Nota (opcional)</label>
+      <input type="text" name="nota"
+        style="width:100%;border:1px solid #F0E0E0;
+        border-radius:8px;padding:8px 12px;font-size:12px;
+        font-family:'Montserrat',sans-serif;
+        outline:none;margin-bottom:24px">
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn"
+          onclick="document.getElementById('modal-mov').style.display='none'">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+          Registrar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

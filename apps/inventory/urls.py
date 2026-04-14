@@ -11,4 +11,5 @@ urlpatterns = [
     path('categorias/',  views.vista_categorias,       name='categorias'),
     path('categorias/crear/',                views.crear_categoria,    name='crear_categoria'),
     path('categorias/<uuid:pk>/eliminar/',   views.eliminar_categoria, name='eliminar_categoria'),
+    path('movimientos/registrar/', views.registrar_movimiento, name='registrar_movimiento'),
 ]
