@@ -221,6 +221,7 @@
         Dashboard
       </a>
 
+      {% if request.user.es_admin %}
       <a href="{% url 'productos' %}" class="sb-item
         {% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
         <span class="sb-icon">
@@ -254,6 +255,7 @@
         </span>
         Categorias
       </a>
+      {% endif %}
 
       <div class="sb-footer">
         <a href="{% url 'logout' %}"

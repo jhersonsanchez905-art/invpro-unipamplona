@@ -3,7 +3,6 @@ from . import views
 
 urlpatterns = [
     path('',             views.vista_dashboard,       name='dashboard'),
-    path('cliente/',     views.vista_dashboard,        name='dashboard_cliente'),
     path('productos/',   views.vista_productos,        name='productos'),
     path('productos/crear/',              views.crear_producto,     name='crear_producto'),
     path('productos/<uuid:pk>/eliminar/', views.eliminar_producto,  name='eliminar_producto'),

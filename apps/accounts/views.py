@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from .decorators import login_required_custom
 
 
 def vista_login(request):
@@ -22,3 +23,15 @@ def vista_login(request):
 def vista_logout(request):
     logout(request)
     return redirect('login')
+
+
+@login_required_custom
+def vista_dashboard_cliente(request):
+    from apps.inventory.models import Producto
+    productos = Producto.objects.select_related(
+        'categoria').filter(is_active=True)
+    alertas = productos.filter(stock_actual__lte=0).count()
+    return render(request, 'dashboard/cliente.html', {
+        'productos':        productos,
+        'productos_alerta': alertas,
+    })

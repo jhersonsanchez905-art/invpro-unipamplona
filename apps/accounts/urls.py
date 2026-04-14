@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('login/',  views.vista_login,  name='login'),
-    path('logout/', views.vista_logout, name='logout'),
+    path('login/',             views.vista_login,            name='login'),
+    path('logout/',            views.vista_logout,           name='logout'),
+    path('cliente/dashboard/', views.vista_dashboard_cliente, name='dashboard_cliente'),
 ]
