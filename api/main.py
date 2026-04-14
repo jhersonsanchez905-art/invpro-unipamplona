@@ -286,7 +286,49 @@ def _listar_movimientos(tipo, limite):
         "created_at": m.created_at.strftime('%d/%m/%Y %H:%M'),
     } for m in qs]
 
-    
+# ── CATEGORIAS — LISTAR ───────────────────────────────────────────
+@app.get("/v1/categorias/")
+async def listar_categorias():
+    return await sync_to_async(_listar_categorias)()
+
+def _listar_categorias():
+    from apps.inventory.models import Categoria
+    qs = Categoria.objects.filter(is_active=True).order_by('nombre')
+    return [{
+        "id":          str(c.id),
+        "nombre":      c.nombre,
+        "descripcion": c.descripcion,
+        "productos":   c.productos.filter(is_active=True).count(),
+    } for c in qs.prefetch_related('productos')]
+
+# ── CATEGORIAS — CREAR ────────────────────────────────────────────
+class CategoriaCreate(BaseModel):
+    nombre:      str
+    descripcion: Optional[str] = ''
+
+@app.post("/v1/categorias/", status_code=201)
+async def crear_categoria_api(data: CategoriaCreate):
+    return await sync_to_async(_crear_categoria_api)(data)
+
+def _crear_categoria_api(data):
+    from apps.inventory.models import Categoria
+
+    if Categoria.objects.filter(nombre=data.nombre).exists():
+        raise HTTPException(
+            status_code=400,
+            detail=f'Ya existe la categoria {data.nombre}')
+
+    cat = Categoria.objects.create(
+        nombre=data.nombre,
+        descripcion=data.descripcion or '',
+    )
+    return {
+        "id":          str(cat.id),
+        "nombre":      cat.nombre,
+        "descripcion": cat.descripcion,
+        "productos":   0,
+    }
+
 # ── HELPER ────────────────────────────────────────────────────────
 def _producto_to_dict(p):
     return {
