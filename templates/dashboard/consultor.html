@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Consulta de Stock{% endblock %}
+{% block title %}Panel Consultor{% endblock %}
 {% block content %}
 
 <div class="ph">
   <div>
-    <div class="ph-eyebrow">Consulta</div>
-    <div class="ph-title">Stock de productos</div>
+    <div class="ph-eyebrow">Consultor</div>
+    <div class="ph-title">Consulta de inventario</div>
     <div class="ph-sub">
       Bienvenido, {{ request.user.username }} — Vista de solo lectura
     </div>
@@ -13,33 +13,28 @@
 </div>
 
 {% if productos_alerta %}
-<div style="background:#FEE2E2;border:1px solid #F09595;
-  border-left:3px solid #DC2626;border-radius:8px;
-  padding:10px 14px;margin-bottom:16px;
+<div style="background:#FEE2E2;border-left:3px solid #DC2626;
+  border-radius:8px;padding:10px 14px;margin-bottom:16px;
   font-size:12px;color:#991B1B">
-  Hay {{ productos_alerta }} producto(s) con stock bajo
+  {{ productos_alerta }} producto(s) con stock bajo
 </div>
 {% endif %}
 
 <div class="panel">
   <div class="panel-header">
-    <span class="panel-title">Inventario actual</span>
+    <span class="panel-title">Inventario actual — Solo lectura</span>
   </div>
   <table class="data">
     <thead>
       <tr>
-        <th>SKU</th>
-        <th>Producto</th>
-        <th>Categoria</th>
-        <th>Stock actual</th>
-        <th>Estado</th>
+        <th>SKU</th><th>Producto</th><th>Categoria</th>
+        <th>Stock actual</th><th>Estado</th>
       </tr>
     </thead>
     <tbody>
       {% for p in productos %}
       <tr {% if p.tiene_alerta %}style="background:#FEF2F2"{% endif %}>
-        <td style="font-family:monospace;color:#AD3333">
-          {{ p.sku }}</td>
+        <td style="font-family:monospace;color:#AD3333">{{ p.sku }}</td>
         <td style="font-weight:600">{{ p.nombre }}</td>
         <td>{{ p.categoria.nombre }}</td>
         <td style="font-weight:700;
@@ -47,22 +42,17 @@
           {{ p.stock_actual }}</td>
         <td>
           {% if p.tiene_alerta %}
-          <span class="pill pill-danger">Stock bajo</span>
+          <span class="pill pill-danger">Alerta</span>
           {% else %}
           <span class="pill pill-ok">OK</span>
           {% endif %}
         </td>
       </tr>
       {% empty %}
-      <tr>
-        <td colspan="5" style="text-align:center;
-          padding:40px;color:#b07070">
-          No hay productos registrados
-        </td>
-      </tr>
+      <tr><td colspan="5" style="text-align:center;
+        padding:40px;color:#b07070">No hay productos</td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
-
 {% endblock %}

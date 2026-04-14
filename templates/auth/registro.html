@@ -3,7 +3,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>InvPro · Login</title>
+  <title>InvPro · Registro</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -11,7 +11,7 @@
       background:linear-gradient(135deg,#6b0000 0%,#AD3333 100%);
       min-height:100vh;display:flex;align-items:center;justify-content:center}
     .card{background:#fff;border-radius:16px;padding:40px;
-      width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+      width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
     .logo{text-align:center;margin-bottom:28px}
     .logo-title{font-size:24px;font-weight:700;color:#AD3333}
     .logo-sub{font-size:12px;color:#7a3a3a;margin-top:4px}
@@ -20,26 +20,24 @@
     label{display:block;font-size:11px;font-weight:600;
       color:#3d1010;text-transform:uppercase;letter-spacing:0.05em;
       margin-bottom:6px}
-    input{width:100%;border:1px solid #F0E0E0;border-radius:8px;
+    input,select{width:100%;border:1px solid #F0E0E0;border-radius:8px;
       padding:10px 14px;font-size:13px;font-family:'Montserrat',sans-serif;
       color:#1a0808;outline:none;transition:border 0.15s;margin-bottom:16px}
-    input:focus{border-color:#AD3333}
+    input:focus,select:focus{border-color:#AD3333}
     .btn{width:100%;background:linear-gradient(135deg,#8C2020,#AD3333);
       color:#fff;border:none;border-radius:8px;padding:12px;
       font-size:13px;font-weight:600;font-family:'Montserrat',sans-serif;
       cursor:pointer;transition:opacity 0.15s}
     .btn:hover{opacity:0.9}
-    .version{text-align:center;font-size:10px;color:#b07070;margin-top:20px}
-    .registro-link{text-align:center;font-size:12px;
-      color:#7a3a3a;margin-top:12px}
-    .registro-link a{color:#AD3333;font-weight:600;text-decoration:none}
+    .link{text-align:center;font-size:12px;color:#7a3a3a;margin-top:16px}
+    .link a{color:#AD3333;font-weight:600;text-decoration:none}
   </style>
 </head>
 <body>
   <div class="card">
     <div class="logo">
       <div class="logo-title">InvPro</div>
-      <div class="logo-sub">Sistema de Inventario · Universidad de Pamplona</div>
+      <div class="logo-sub">Crear cuenta · Universidad de Pamplona</div>
     </div>
     {% if messages %}
       {% for msg in messages %}
@@ -51,13 +49,13 @@
       <label>Usuario</label>
       <input type="text" name="username" autofocus required>
       <label>Contraseña</label>
-      <input type="password" name="password" required>
-      <button type="submit" class="btn">Ingresar al sistema</button>
+      <input type="password" name="password1" required>
+      <label>Confirmar contraseña</label>
+      <input type="password" name="password2" required>
+      <button type="submit" class="btn">Crear cuenta</button>
     </form>
-    <div class="version">InvPro v1.0.0 · Unipamplona 2026</div>
-    <div class="registro-link">
-      ¿No tienes cuenta?
-      <a href="{% url 'registro' %}">Registrarse</a>
+    <div class="link">
+      ¿Ya tienes cuenta? <a href="{% url 'login' %}">Ingresar</a>
     </div>
   </div>
 </body>

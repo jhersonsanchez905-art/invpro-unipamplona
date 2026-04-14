@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Panel Operador{% endblock %}
+{% block content %}
+
+<div class="ph">
+  <div>
+    <div class="ph-eyebrow">Operador</div>
+    <div class="ph-title">Panel de operaciones</div>
+    <div class="ph-sub">
+      Bienvenido, {{ request.user.username }} — Puedes registrar movimientos
+    </div>
+  </div>
+</div>
+
+{% if productos_alerta %}
+<div style="background:#FEE2E2;border-left:3px solid #DC2626;
+  border-radius:8px;padding:10px 14px;margin-bottom:16px;
+  font-size:12px;color:#991B1B">
+  {{ productos_alerta }} producto(s) con stock bajo
+</div>
+{% endif %}
+
+<div class="panel">
+  <div class="panel-header">
+    <span class="panel-title">Stock actual</span>
+    <button onclick="document.getElementById('modal-mov').style.display='flex'"
+      class="btn btn-primary" style="font-size:11px;padding:5px 12px">
+      + Registrar movimiento
+    </button>
+  </div>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>SKU</th><th>Producto</th><th>Categoria</th>
+        <th>Stock actual</th><th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in productos %}
+      <tr {% if p.tiene_alerta %}style="background:#FEF2F2"{% endif %}>
+        <td style="font-family:monospace;color:#AD3333">{{ p.sku }}</td>
+        <td style="font-weight:600">{{ p.nombre }}</td>
+        <td>{{ p.categoria.nombre }}</td>
+        <td style="font-weight:700;
+          color:{% if p.tiene_alerta %}#DC2626{% else %}#1a0808{% endif %}">
+          {{ p.stock_actual }}</td>
+        <td>
+          {% if p.tiene_alerta %}
+          <span class="pill pill-danger">Alerta</span>
+          {% else %}
+          <span class="pill pill-ok">OK</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="text-align:center;
+        padding:40px;color:#b07070">No hay productos</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL REGISTRAR MOVIMIENTO -->
+<div id="modal-mov" style="display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.4);z-index:100;
+  align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px;
+    width:100%;max-width:440px;margin:20px">
+    <div style="font-size:16px;font-weight:700;color:#1a0808;
+      margin-bottom:20px">Registrar movimiento</div>
+    <form method="POST" action="{% url 'registrar_movimiento' %}">
+      {% csrf_token %}
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;margin-bottom:6px">Tipo</label>
+      <select name="tipo" required style="width:100%;border:1px solid #F0E0E0;
+        border-radius:8px;padding:8px 12px;font-size:12px;
+        font-family:'Montserrat',sans-serif;outline:none;margin-bottom:16px">
+        <option value="entrada">Entrada</option>
+        <option value="salida">Salida</option>
+        <option value="ajuste">Ajuste</option>
+      </select>
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;margin-bottom:6px">Producto</label>
+      <select name="producto_id" required style="width:100%;border:1px solid #F0E0E0;
+        border-radius:8px;padding:8px 12px;font-size:12px;
+        font-family:'Montserrat',sans-serif;outline:none;margin-bottom:16px">
+        <option value="">Seleccionar...</option>
+        {% for p in productos %}
+        <option value="{{ p.id }}">{{ p.sku }} — {{ p.nombre }}</option>
+        {% endfor %}
+      </select>
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;margin-bottom:6px">Cantidad</label>
+      <input type="number" name="cantidad" min="1" required
+        style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+        padding:8px 12px;font-size:12px;font-family:'Montserrat',sans-serif;
+        outline:none;margin-bottom:16px">
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;margin-bottom:6px">Nota</label>
+      <input type="text" name="nota" style="width:100%;border:1px solid #F0E0E0;
+        border-radius:8px;padding:8px 12px;font-size:12px;
+        font-family:'Montserrat',sans-serif;outline:none;margin-bottom:24px">
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn"
+          onclick="document.getElementById('modal-mov').style.display='none'">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">Registrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
