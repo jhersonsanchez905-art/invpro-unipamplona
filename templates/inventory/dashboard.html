@@ -1,16 +1,221 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block content %}
+
 <div class="ph">
   <div>
     <div class="ph-eyebrow">Panel de control</div>
     <div class="ph-title">Dashboard</div>
-    <div class="ph-sub">Bienvenido al sistema de inventario</div>
+    <div class="ph-sub">Resumen del sistema de inventario</div>
   </div>
 </div>
-<div style="background:rgba(255,255,255,0.85);border:1px solid #F0E0E0;
-  border-radius:12px;padding:40px;text-align:center;color:#7a3a3a;
-  font-size:13px">
-  Dashboard en construccion — Persona E lo completa el Dia 3
+
+<!-- KPI CARDS -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);
+  gap:12px;margin-bottom:16px" id="kpi-grid">
+
+  <div class="panel" style="padding:20px">
+    <div style="font-size:10px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.08em;
+      color:var(--t4);margin-bottom:8px">Total productos</div>
+    <div id="kpi-total" style="font-size:28px;font-weight:700;
+      color:var(--t1)">—</div>
+    <div style="font-size:11px;color:var(--t3);margin-top:4px">
+      productos activos</div>
+  </div>
+
+  <div class="panel" style="padding:20px">
+    <div style="font-size:10px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.08em;
+      color:var(--t4);margin-bottom:8px">Entradas hoy</div>
+    <div id="kpi-entradas" style="font-size:28px;font-weight:700;
+      color:#16A34A">—</div>
+    <div style="font-size:11px;color:var(--t3);margin-top:4px">
+      movimientos de entrada</div>
+  </div>
+
+  <div class="panel" style="padding:20px">
+    <div style="font-size:10px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.08em;
+      color:var(--t4);margin-bottom:8px">Salidas hoy</div>
+    <div id="kpi-salidas" style="font-size:28px;font-weight:700;
+      color:#AD3333">—</div>
+    <div style="font-size:11px;color:var(--t3);margin-top:4px">
+      movimientos de salida</div>
+  </div>
+
+  <div class="panel" style="padding:20px">
+    <div style="font-size:10px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.08em;
+      color:var(--t4);margin-bottom:8px">Alertas activas</div>
+    <div id="kpi-alertas" style="font-size:28px;font-weight:700;
+      color:#D97706">—</div>
+    <div style="font-size:11px;color:var(--t3);margin-top:4px">
+      productos con stock bajo</div>
+  </div>
+
 </div>
+
+<!-- GRAFICA + TABLA -->
+<div style="display:grid;grid-template-columns:1fr 1fr;
+  gap:12px">
+
+  <!-- GRAFICA CHART.JS -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Movimientos ultimos 7 dias</span>
+    </div>
+    <div style="padding:16px">
+      <canvas id="grafica-movimientos" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- ULTIMOS MOVIMIENTOS -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Ultimos movimientos</span>
+    </div>
+    <table class="data" id="tabla-movimientos">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-movimientos">
+        <tr>
+          <td colspan="4" style="text-align:center;
+            padding:20px;color:var(--t4)">
+            Cargando...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const API = '/api/v1/dashboard/';
+let graficaInstance = null;
+
+async function cargarDashboard() {
+  try {
+    const res  = await fetch(API);
+    const data = await res.json();
+
+    // KPIs
+    document.getElementById('kpi-total').textContent =
+      data.total_productos ?? 0;
+    document.getElementById('kpi-entradas').textContent =
+      data.entradas_hoy ?? 0;
+    document.getElementById('kpi-salidas').textContent =
+      data.salidas_hoy ?? 0;
+    document.getElementById('kpi-alertas').textContent =
+      data.alertas_activas ?? 0;
+
+    // Grafica
+    const labels   = data.movimientos_7_dias.map(d => d.fecha);
+    const entradas = data.movimientos_7_dias.map(d => d.entradas);
+    const salidas  = data.movimientos_7_dias.map(d => d.salidas);
+
+    const ctx = document.getElementById('grafica-movimientos')
+      .getContext('2d');
+
+    if (graficaInstance) graficaInstance.destroy();
+
+    graficaInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Entradas',
+            data: entradas,
+            backgroundColor: 'rgba(22,163,74,0.7)',
+            borderColor: '#16A34A',
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+          {
+            label: 'Salidas',
+            data: salidas,
+            backgroundColor: 'rgba(173,51,51,0.7)',
+            borderColor: '#AD3333',
+            borderWidth: 1,
+            borderRadius: 4,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              font: { family: 'Montserrat', size: 11 }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              font: { family: 'Montserrat', size: 10 }
+            }
+          },
+          x: {
+            ticks: {
+              font: { family: 'Montserrat', size: 10 }
+            }
+          }
+        }
+      }
+    });
+
+    // Tabla ultimos movimientos
+    const tbody = document.getElementById('tbody-movimientos');
+    if (data.ultimos_movimientos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:20px;color:#b07070">
+        No hay movimientos registrados</td></tr>`;
+    } else {
+      tbody.innerHTML = data.ultimos_movimientos.map(m => `
+        <tr>
+          <td>
+            <span class="pill ${
+              m.tipo === 'entrada' ? 'pill-ok' :
+              m.tipo === 'salida'  ? 'pill-danger' :
+              'pill-warn'}">
+              ${m.tipo}
+            </span>
+          </td>
+          <td style="font-family:monospace;font-size:11px;
+            color:#AD3333">${m.producto}</td>
+          <td style="font-weight:700;text-align:right">
+            ${m.cantidad}</td>
+          <td style="color:#7a3a3a;font-size:11px">
+            ${m.fecha}</td>
+        </tr>
+      `).join('');
+    }
+
+  } catch(e) {
+    console.error('Error cargando dashboard:', e);
+  }
+}
+
+cargarDashboard();
+setInterval(cargarDashboard, 30000);
+</script>
 {% endblock %}
