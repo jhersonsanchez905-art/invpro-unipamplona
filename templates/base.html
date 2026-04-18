@@ -173,7 +173,7 @@
           </div>
         </div>
 
-        {# ── Bloque 2FA — lee "tiene_2fa" del contexto del view/processor ── #}
+        {# ── Bloque 2FA — lee "tiene_2fa" del context processor ─────────── #}
         {% if tiene_2fa %}
 
           {# Estado: 2FA activo → botón para desactivar #}
@@ -186,7 +186,6 @@
                 font-family:var(--font);text-align:left"
               onmouseover="this.style.background='#F0FDF4'"
               onmouseout="this.style.background='transparent'">
-              {# Candado cerrado con checkmark — indica 2FA activo #}
               <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
                 stroke="#16A34A" stroke-width="1.8" aria-hidden="true">
                 <rect x="3" y="7" width="10" height="8" rx="1.5"/>
@@ -206,7 +205,6 @@
               font-size:12px;font-weight:500;color:#1a0808;text-decoration:none"
             onmouseover="this.style.background='#FDF2F2'"
             onmouseout="this.style.background='transparent'">
-            {# Candado abierto — indica 2FA inactivo #}
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
               stroke="currentColor" stroke-width="1.8" aria-hidden="true">
               <rect x="3" y="7" width="10" height="8" rx="1.5"/>
@@ -253,6 +251,7 @@
         <div class="sb-brand-name">Universidad de Pamplona</div>
       </div>
 
+      {# ── Sección principal — visible para todos los roles ────────────── #}
       <div class="sb-section">Principal</div>
 
       <a href="{% url 'dashboard' %}"
@@ -269,7 +268,10 @@
         Dashboard
       </a>
 
+      {# ── Ítems exclusivos del rol ADMIN ──────────────────────────────── #}
       {% if request.user.es_admin %}
+
+        <div class="sb-section">Administración</div>
 
         <a href="{% url 'productos' %}"
           class="sb-item {% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
@@ -306,6 +308,46 @@
         </a>
 
       {% endif %}
+      {# ── fin ítems ADMIN ─────────────────────────────────────────────── #}
+
+      {# ── Ítems exclusivos del rol OPERADOR ───────────────────────────── #}
+      {% if request.user.es_operador %}
+
+        <div class="sb-section">Operación</div>
+
+        <a href="{% url 'mis_movimientos' %}"
+          class="sb-item {% if request.resolver_match.url_name == 'mis_movimientos' %}active{% endif %}">
+          <span class="sb-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <path d="M8 2v12M3 7l5-5 5 5" stroke-linecap="round"/>
+            </svg>
+          </span>
+          Mis movimientos
+        </a>
+
+      {% endif %}
+      {# ── fin ítems OPERADOR ──────────────────────────────────────────── #}
+
+      {# ── Ítems exclusivos del rol CONSULTOR ──────────────────────────── #}
+      {% if request.user.es_consultor %}
+
+        <div class="sb-section">Consulta</div>
+
+        <a href="{% url 'reportes_consultor' %}"
+          class="sb-item {% if request.resolver_match.url_name == 'reportes_consultor' %}active{% endif %}">
+          <span class="sb-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <rect x="2" y="2" width="12" height="12" rx="1.5"/>
+              <path d="M2 13l3.5-4 3 2.5 3-5L14 9"/>
+            </svg>
+          </span>
+          Reportes
+        </a>
+
+      {% endif %}
+      {# ── fin ítems CONSULTOR ─────────────────────────────────────────── #}
 
       <div class="sb-footer">
         <a href="{% url 'logout' %}"

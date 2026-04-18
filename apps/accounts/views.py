@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from apps.accounts.models import CustomUser
 from .decorators import login_required_custom, operador_required, consultor_required
-
+from django.db import models
 
 def vista_login(request):
     """
@@ -43,12 +43,7 @@ def vista_login(request):
 
             # Sin 2FA — autenticación completa directa
             login(request, user)
-            if user.es_admin():
-                return redirect('dashboard')
-            elif user.es_operador():
-                return redirect('dashboard_operador')
-            else:
-                return redirect('dashboard_consultor')
+            return _redirigir_por_rol(user)
 
         messages.error(request, 'Usuario o contraseña incorrectos')
 
@@ -112,56 +107,137 @@ def vista_registro(request):
 def vista_dashboard_operador(request):
     """
     Panel principal para usuarios con rol operador.
-    Muestra el inventario activo y el conteo de productos con stock en cero.
+
+    Muestra:
+      - Inventario activo completo con su categoría.
+      - Conteo de productos con stock en cero (alertas críticas).
+      - Resumen de movimientos propios del día: entradas, salidas, ajustes.
+      - Historial personal de los últimos 20 movimientos registrados.
+
     Requiere rol operador o superior (decorator: operador_required).
     """
     from apps.inventory.models import Producto
+    from apps.movements.models import Movimiento
+    from django.utils import timezone
 
-    productos = Producto.objects.select_related(
-        'categoria').filter(is_active=True)
-    alertas = productos.filter(stock_actual__lte=0).count()
+    hoy = timezone.now().date()
+
+    productos = Producto.objects.select_related('categoria').filter(is_active=True)
+    alertas   = productos.filter(stock_actual__lte=0).count()
+
+    # Resumen del día — filtra solo los movimientos del usuario en sesión
+    movs_hoy     = Movimiento.objects.filter(
+        usuario=request.user,
+        created_at__date=hoy,
+    )
+    entradas_hoy = movs_hoy.filter(tipo='entrada').count()
+    salidas_hoy  = movs_hoy.filter(tipo='salida').count()
+    ajustes_hoy  = movs_hoy.filter(tipo='ajuste').count()
+
+    # Historial propio — últimos 20 movimientos, ordenados por fecha descendente
+    mis_movimientos = Movimiento.objects.filter(
+        usuario=request.user,
+    ).select_related('producto').order_by('-created_at')[:20]
 
     return render(request, 'dashboard/operador.html', {
         'productos':        productos,
         'productos_alerta': alertas,
+        'entradas_hoy':     entradas_hoy,
+        'salidas_hoy':      salidas_hoy,
+        'ajustes_hoy':      ajustes_hoy,
+        'mis_movimientos':  mis_movimientos,
     })
 
 
 @consultor_required
 def vista_dashboard_consultor(request):
-    """
-    Panel principal para usuarios con rol consultor (solo lectura).
-    Muestra el inventario activo y el conteo de productos con stock en cero.
-    No expone acciones de escritura en la plantilla.
-    Requiere autenticación (decorator: consultor_required).
-    """
     from apps.inventory.models import Producto
-
     productos = Producto.objects.select_related(
         'categoria').filter(is_active=True)
     alertas = productos.filter(stock_actual__lte=0).count()
-
     return render(request, 'dashboard/consultor.html', {
         'productos':        productos,
         'productos_alerta': alertas,
     })
 
+@operador_required
+def vista_mis_movimientos(request):
+    from apps.movements.models import Movimiento
+    from django.utils import timezone
+
+    hoy = timezone.now().date()
+
+    entradas_hoy = Movimiento.objects.filter(
+        usuario=request.user, created_at__date=hoy, tipo='entrada').count()
+    salidas_hoy  = Movimiento.objects.filter(
+        usuario=request.user, created_at__date=hoy, tipo='salida').count()
+    ajustes_hoy  = Movimiento.objects.filter(
+        usuario=request.user, created_at__date=hoy, tipo='ajuste').count()
+
+    mis_movimientos = Movimiento.objects.filter(
+        usuario=request.user
+    ).select_related('producto').order_by('-created_at')[:50]
+
+    return render(request, 'dashboard/mis_movimientos.html', {
+        'entradas_hoy':    entradas_hoy,
+        'salidas_hoy':     salidas_hoy,
+        'ajustes_hoy':     ajustes_hoy,
+        'mis_movimientos': mis_movimientos,
+    })
+
+
+@consultor_required
+def vista_reportes_consultor(request):
+    from apps.inventory.models import Producto, Categoria
+    from apps.movements.models import Movimiento
+    from django.db.models import Sum, F
+
+    productos_alerta_list = Producto.objects.filter(
+        is_active=True,
+        stock_actual__lte=F('stock_minimo')
+    ).select_related('categoria').order_by('stock_actual')
+
+    movimientos = Movimiento.objects.select_related(
+        'producto', 'usuario').order_by('-created_at')[:50]
+
+    categorias = Categoria.objects.filter(is_active=True)
+    stock_cats = []
+    for cat in categorias:
+        total = Producto.objects.filter(
+            categoria=cat, is_active=True
+        ).aggregate(total=Sum('stock_actual'))['total'] or 0
+        stock_cats.append({'nombre': cat.nombre, 'total': float(total)})
+
+    return render(request, 'dashboard/reportes_consultor.html', {
+        'prods_alerta_list': productos_alerta_list,
+        'movimientos':       movimientos,
+        'stock_cats':        stock_cats,
+    })
 
 @login_required_custom
 def vista_2fa_setup(request):
-    from django_otp.plugins.otp_totp.models import TOTPDevice
-    import qrcode, qrcode.image.svg, io, base64
+    """
+    Genera un dispositivo TOTP no confirmado para el usuario autenticado,
+    produce el QR de configuración y lo entrega al template como base64 PNG.
 
-    # Elimina dispositivos previos no confirmados
+    Elimina cualquier dispositivo previo no confirmado antes de crear uno nuevo
+    para evitar dispositivos huérfanos en la base de datos.
+    """
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+    import qrcode
+    import io
+    import base64
+
+    # Elimina dispositivos previos no confirmados del mismo usuario
     TOTPDevice.objects.filter(user=request.user, confirmed=False).delete()
 
-    device, created = TOTPDevice.objects.get_or_create(
+    device, _ = TOTPDevice.objects.get_or_create(
         user=request.user,
         confirmed=False,
-        defaults={'name': 'InvPro Unipamplona'}
+        defaults={'name': 'InvPro Unipamplona'},
     )
 
-    # Genera QR
+    # Genera el QR como PNG en memoria y lo codifica en base64
     uri = device.config_url
     img = qrcode.make(uri)
     buf = io.BytesIO()
@@ -169,9 +245,9 @@ def vista_2fa_setup(request):
     qr_b64 = base64.b64encode(buf.getvalue()).decode()
 
     return render(request, 'auth/2fa_setup.html', {
-        'qr_b64':  qr_b64,
-        'secret':  device.bin_key.hex(),
-        'device':  device,
+        'qr_b64': qr_b64,
+        'secret': device.bin_key.hex(),
+        'device': device,
     })
 
 
@@ -225,7 +301,7 @@ def vista_2fa_verify(request):
         # ── Escenario B: segundo factor en flujo de login ────────────────────
         user_pk = request.session.get('pre_2fa_user_pk')
         if not user_pk:
-            # Sesión temporal expirada o acceso directo a la URL — vuelve al login
+            # Sesión temporal expirada o acceso directo a la URL
             messages.error(request,
                 'Sesión expirada. Inicia sesión nuevamente.')
             return redirect('login')
@@ -236,14 +312,14 @@ def vista_2fa_verify(request):
             messages.error(request, 'Usuario no encontrado')
             return redirect('login')
 
-        device = TOTPDevice.objects.filter(
-            user=user, confirmed=True).first()
+        device = TOTPDevice.objects.filter(user=user, confirmed=True).first()
 
         if device and device.verify_token(token):
             # Token válido — ahora sí se establece la sesión completa
             backend = request.session.get(
                 'pre_2fa_backend',
-                'django.contrib.auth.backends.ModelBackend')
+                'django.contrib.auth.backends.ModelBackend',
+            )
             user.backend = backend
             login(request, user)
             django_otp.login(request, device)
@@ -258,8 +334,10 @@ def vista_2fa_verify(request):
 
 
 def _redirigir_por_rol(user):
-    """Helper interno — centraliza la redirección por rol para evitar
-    duplicar la misma lógica en vista_login y vista_2fa_verify."""
+    """
+    Helper interno — centraliza la redirección por rol.
+    Evita duplicar la misma lógica en vista_login y vista_2fa_verify.
+    """
     if user.es_admin():
         return redirect('dashboard')
     elif user.es_operador():
@@ -270,6 +348,10 @@ def _redirigir_por_rol(user):
 
 @login_required_custom
 def vista_2fa_disable(request):
+    """
+    Elimina todos los dispositivos TOTP del usuario autenticado.
+    Solo acepta POST para evitar desactivación accidental por GET.
+    """
     from django_otp.plugins.otp_totp.models import TOTPDevice
     if request.method == 'POST':
         TOTPDevice.objects.filter(user=request.user).delete()

@@ -10,4 +10,6 @@ urlpatterns = [
     path('2fa/setup/',    views.vista_2fa_setup,   name='2fa_setup'),
     path('2fa/verify/',   views.vista_2fa_verify,  name='2fa_verify'),
     path('2fa/disable/',  views.vista_2fa_disable, name='2fa_disable'),
+    path('operador/mis-movimientos/', views.vista_mis_movimientos, name='mis_movimientos'),
+    path('consultor/reportes/',       views.vista_reportes_consultor, name='reportes_consultor'),
 ]

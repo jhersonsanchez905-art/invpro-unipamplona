@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Panel Operador{% endblock %}
+
 {% block content %}
 
+{# ── Page header ─────────────────────────────────────────────────────────── #}
 <div class="ph">
   <div>
     <div class="ph-eyebrow">Operador</div>
@@ -12,6 +14,7 @@
   </div>
 </div>
 
+{# ── Banner de alerta de stock bajo ──────────────────────────────────────── #}
 {% if productos_alerta %}
 <div style="background:#FEE2E2;border-left:3px solid #DC2626;
   border-radius:8px;padding:10px 14px;margin-bottom:16px;
@@ -20,27 +23,118 @@
 </div>
 {% endif %}
 
+{# ══════════════════════════════════════════════════════ SISTEMA DE TOASTS ══ #}
+{% if messages %}
+<style>
+  @keyframes invpro-toast-in {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes invpro-toast-out {
+    from { opacity:1; transform:translateY(0); }
+    to   { opacity:0; transform:translateY(8px); }
+  }
+</style>
+
+{% for msg in messages %}
+<div id="toast-{{ forloop.counter }}"
+  role="alert"
+  aria-live="assertive"
+  style="position:fixed;bottom:28px;right:28px;z-index:999;
+    display:flex;align-items:flex-start;gap:12px;background:#fff;
+    border-radius:14px;padding:16px 20px;
+    box-shadow:0 8px 32px rgba(26,8,8,0.13);
+    border-left:4px solid {% if msg.tags == 'success' %}#16A34A{% else %}#DC2626{% endif %};
+    max-width:380px;font-family:var(--font);
+    animation:invpro-toast-in .25s ease both">
+
+  {# Ícono circular de estado #}
+  <div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:{% if msg.tags == 'success' %}#DCFCE7{% else %}#FEE2E2{% endif %}">
+    {% if msg.tags == 'success' %}
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+        stroke="#16A34A" stroke-width="2.2" aria-hidden="true">
+        <path d="M2 8l4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    {% else %}
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+        stroke="#DC2626" stroke-width="2.2" aria-hidden="true">
+        <circle cx="8" cy="8" r="6"/>
+        <path d="M8 5v3.5" stroke-linecap="round"/>
+        <circle cx="8" cy="11" r=".5" fill="#DC2626" stroke="none"/>
+      </svg>
+    {% endif %}
+  </div>
+
+  {# Cuerpo del toast: título + mensaje #}
+  <div style="flex:1;min-width:0">
+    <div style="font-size:12px;font-weight:700;margin-bottom:3px;
+      color:{% if msg.tags == 'success' %}#14532D{% else %}#991B1B{% endif %}">
+      {% if msg.tags == 'success' %}Operación exitosa{% else %}Error en la operación{% endif %}
+    </div>
+    <div style="font-size:12px;color:#7a3a3a;line-height:1.5">{{ msg }}</div>
+  </div>
+
+  {# Botón cerrar manual #}
+  <button type="button"
+    onclick="(function(el){
+      el.style.animation='invpro-toast-out .2s ease forwards';
+      setTimeout(function(){el.remove()},200);
+    })(document.getElementById('toast-{{ forloop.counter }}'))"
+    style="background:none;border:none;cursor:pointer;
+      padding:0;flex-shrink:0;color:#b07070"
+    aria-label="Cerrar notificación">
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+      stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <path d="M1 1l8 8M9 1L1 9" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+</div>
+
+{# Auto-dismiss a los 4 s; pausa si el cursor está encima #}
+<script>
+(function(){
+  var el = document.getElementById('toast-{{ forloop.counter }}');
+  if (!el) return;
+  var t = setTimeout(function(){
+    el.style.animation = 'invpro-toast-out .2s ease forwards';
+    setTimeout(function(){ el.remove(); }, 200);
+  }, 4000);
+  el.addEventListener('mouseenter', function(){ clearTimeout(t); });
+})();
+</script>
+
+{% endfor %}
+{% endif %}
+{# ════════════════════════════════════════════════════ fin SISTEMA DE TOASTS ══ #}
+
+{# ── Tabla de stock actual ────────────────────────────────────────────────── #}
 <div class="panel">
   <div class="panel-header">
     <span class="panel-title">Stock actual</span>
     <div style="display:flex;gap:8px;align-items:center">
+
       <input id="buscador-op" type="text" placeholder="Buscar producto o SKU..."
         oninput="filtrarOp()"
-        style="border:1px solid #F0E0E0;border-radius:8px;
-        padding:6px 12px;font-size:12px;font-family:'Montserrat',sans-serif;
-        outline:none;width:220px">
+        style="border:1px solid #F0E0E0;border-radius:8px;padding:6px 12px;
+          font-size:12px;font-family:var(--font);outline:none;width:220px">
+
       <button onclick="document.getElementById('modal-mov').style.display='flex'"
         class="btn btn-primary" style="font-size:11px;padding:5px 12px">
         + Registrar movimiento
       </button>
+
     </div>
   </div>
+
   <table class="data" id="tabla-op">
     <thead>
       <tr>
         <th>SKU</th>
         <th>Producto</th>
-        <th>Categoria</th>
+        <th>Categoría</th>
         <th style="text-align:center">Stock actual</th>
         <th style="text-align:center">Estado</th>
       </tr>
@@ -48,68 +142,90 @@
     <tbody>
       {% for p in productos %}
       <tr {% if p.tiene_alerta %}style="background:#FEF2F2"{% endif %}>
-        <td style="font-family:monospace;color:#AD3333">{{ p.sku }}</td>
+
+        <td style="font-family:var(--mono);color:#AD3333">{{ p.sku }}</td>
         <td style="font-weight:600">{{ p.nombre }}</td>
         <td>{{ p.categoria.nombre }}</td>
+
         <td style="font-weight:700;text-align:center;
           color:{% if p.tiene_alerta %}#DC2626{% else %}#1a0808{% endif %}">
-          {{ p.stock_actual }}</td>
+          {{ p.stock_actual }}
+        </td>
+
         <td style="text-align:center">
           {% if p.tiene_alerta %}
-          <span class="pill pill-danger">Alerta</span>
+            <span class="pill pill-danger">Alerta</span>
           {% else %}
-          <span class="pill pill-ok">OK</span>
+            <span class="pill pill-ok">OK</span>
           {% endif %}
         </td>
+
       </tr>
       {% empty %}
-      <tr><td colspan="5" style="text-align:center;
-        padding:40px;color:#b07070">No hay productos</td></tr>
+      <tr>
+        <td colspan="5"
+          style="text-align:center;padding:40px;color:#b07070">
+          No hay productos
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+{# ── fin tabla stock ──────────────────────────────────────────────────────── #}
 
-<!-- MODAL REGISTRAR MOVIMIENTO -->
-<div id="modal-mov" style="display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,0.4);z-index:100;
-  align-items:center;justify-content:center">
+{# ── Modal — registrar movimiento ────────────────────────────────────────── #}
+<div id="modal-mov"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);
+    z-index:100;align-items:center;justify-content:center">
+
   <div style="background:#fff;border-radius:16px;padding:32px;
     width:100%;max-width:440px;margin:20px">
-    <div style="font-size:16px;font-weight:700;color:#1a0808;
-      margin-bottom:20px">Registrar movimiento</div>
+
+    <div style="font-size:16px;font-weight:700;color:#1a0808;margin-bottom:20px">
+      Registrar movimiento
+    </div>
+
     <form method="POST" action="{% url 'registrar_movimiento' %}">
       {% csrf_token %}
+
       <label style="display:block;font-size:11px;font-weight:600;
         color:#3d1010;text-transform:uppercase;margin-bottom:6px">Tipo</label>
-      <select name="tipo" required style="width:100%;border:1px solid #F0E0E0;
-        border-radius:8px;padding:8px 12px;font-size:12px;
-        font-family:'Montserrat',sans-serif;outline:none;margin-bottom:16px">
+      <select name="tipo" required
+        style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+          padding:8px 12px;font-size:12px;font-family:var(--font);
+          outline:none;margin-bottom:16px">
         <option value="entrada">Entrada</option>
         <option value="salida">Salida</option>
         <option value="ajuste">Ajuste</option>
       </select>
+
       <label style="display:block;font-size:11px;font-weight:600;
         color:#3d1010;text-transform:uppercase;margin-bottom:6px">Producto</label>
-      <select name="producto_id" required style="width:100%;border:1px solid #F0E0E0;
-        border-radius:8px;padding:8px 12px;font-size:12px;
-        font-family:'Montserrat',sans-serif;outline:none;margin-bottom:16px">
+      <select name="producto_id" required
+        style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+          padding:8px 12px;font-size:12px;font-family:var(--font);
+          outline:none;margin-bottom:16px">
         <option value="">Seleccionar...</option>
         {% for p in productos %}
-        <option value="{{ p.id }}">{{ p.sku }} — {{ p.nombre }}</option>
+          <option value="{{ p.id }}">{{ p.sku }} — {{ p.nombre }}</option>
         {% endfor %}
       </select>
+
       <label style="display:block;font-size:11px;font-weight:600;
         color:#3d1010;text-transform:uppercase;margin-bottom:6px">Cantidad</label>
       <input type="number" name="cantidad" min="1" required
         style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
-        padding:8px 12px;font-size:12px;font-family:'Montserrat',sans-serif;
-        outline:none;margin-bottom:16px">
+          padding:8px 12px;font-size:12px;font-family:var(--font);
+          outline:none;margin-bottom:16px">
+
       <label style="display:block;font-size:11px;font-weight:600;
         color:#3d1010;text-transform:uppercase;margin-bottom:6px">Nota</label>
-      <input type="text" name="nota" style="width:100%;border:1px solid #F0E0E0;
-        border-radius:8px;padding:8px 12px;font-size:12px;
-        font-family:'Montserrat',sans-serif;outline:none;margin-bottom:24px">
+      <input type="text" name="nota"
+        style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+          padding:8px 12px;font-size:12px;font-family:var(--font);
+          outline:none;margin-bottom:24px">
+
       <div style="display:flex;gap:10px;justify-content:flex-end">
         <button type="button" class="btn"
           onclick="document.getElementById('modal-mov').style.display='none'">
@@ -117,17 +233,20 @@
         </button>
         <button type="submit" class="btn btn-primary">Registrar</button>
       </div>
+
     </form>
   </div>
 </div>
+{# ── fin modal ────────────────────────────────────────────────────────────── #}
 
 <script>
+/* ── Filtro cliente — búsqueda por SKU o nombre de producto ─────────────── */
 function filtrarOp() {
   var texto = document.getElementById('buscador-op').value.toLowerCase();
   var filas = document.querySelectorAll('#tabla-op tbody tr');
   filas.forEach(function(fila) {
-    var sku     = fila.cells[0] ? fila.cells[0].textContent.toLowerCase() : '';
-    var nombre  = fila.cells[1] ? fila.cells[1].textContent.toLowerCase() : '';
+    var sku    = fila.cells[0] ? fila.cells[0].textContent.toLowerCase() : '';
+    var nombre = fila.cells[1] ? fila.cells[1].textContent.toLowerCase() : '';
     fila.style.display = (sku.includes(texto) || nombre.includes(texto)) ? '' : 'none';
   });
 }

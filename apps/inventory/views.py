@@ -121,7 +121,7 @@ def vista_movimientos(request):
     })
 
 
-@admin_required
+@login_required_custom
 def registrar_movimiento(request):
     from apps.movements.services import registrar_movimiento as reg_mov
     from django.core.exceptions import ValidationError
@@ -147,7 +147,12 @@ def registrar_movimiento(request):
         except Exception as e:
             messages.error(request, f'Error: {str(e)}')
 
-    return redirect('movimientos')
+    # Redirige según rol
+    if request.user.es_admin():
+        return redirect('movimientos')
+    elif request.user.es_operador():
+        return redirect('dashboard_operador')
+    return redirect('dashboard_consultor')
 
 
 @login_required_custom
