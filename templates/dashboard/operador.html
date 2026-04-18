@@ -23,16 +23,26 @@
 <div class="panel">
   <div class="panel-header">
     <span class="panel-title">Stock actual</span>
-    <button onclick="document.getElementById('modal-mov').style.display='flex'"
-      class="btn btn-primary" style="font-size:11px;padding:5px 12px">
-      + Registrar movimiento
-    </button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="buscador-op" type="text" placeholder="Buscar producto o SKU..."
+        oninput="filtrarOp()"
+        style="border:1px solid #F0E0E0;border-radius:8px;
+        padding:6px 12px;font-size:12px;font-family:'Montserrat',sans-serif;
+        outline:none;width:220px">
+      <button onclick="document.getElementById('modal-mov').style.display='flex'"
+        class="btn btn-primary" style="font-size:11px;padding:5px 12px">
+        + Registrar movimiento
+      </button>
+    </div>
   </div>
-  <table class="data">
+  <table class="data" id="tabla-op">
     <thead>
       <tr>
-        <th>SKU</th><th>Producto</th><th>Categoria</th>
-        <th>Stock actual</th><th>Estado</th>
+        <th>SKU</th>
+        <th>Producto</th>
+        <th>Categoria</th>
+        <th style="text-align:center">Stock actual</th>
+        <th style="text-align:center">Estado</th>
       </tr>
     </thead>
     <tbody>
@@ -41,10 +51,10 @@
         <td style="font-family:monospace;color:#AD3333">{{ p.sku }}</td>
         <td style="font-weight:600">{{ p.nombre }}</td>
         <td>{{ p.categoria.nombre }}</td>
-        <td style="font-weight:700;
+        <td style="font-weight:700;text-align:center;
           color:{% if p.tiene_alerta %}#DC2626{% else %}#1a0808{% endif %}">
           {{ p.stock_actual }}</td>
-        <td>
+        <td style="text-align:center">
           {% if p.tiene_alerta %}
           <span class="pill pill-danger">Alerta</span>
           {% else %}
@@ -110,4 +120,17 @@
     </form>
   </div>
 </div>
+
+<script>
+function filtrarOp() {
+  var texto = document.getElementById('buscador-op').value.toLowerCase();
+  var filas = document.querySelectorAll('#tabla-op tbody tr');
+  filas.forEach(function(fila) {
+    var sku     = fila.cells[0] ? fila.cells[0].textContent.toLowerCase() : '';
+    var nombre  = fila.cells[1] ? fila.cells[1].textContent.toLowerCase() : '';
+    fila.style.display = (sku.includes(texto) || nombre.includes(texto)) ? '' : 'none';
+  });
+}
+</script>
+
 {% endblock %}

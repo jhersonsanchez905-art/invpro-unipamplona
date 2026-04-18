@@ -9,29 +9,31 @@ def registrar_movimiento(tipo, producto_id, cantidad, usuario, nota=''):
     """
     Registra un movimiento de inventario y actualiza el stock.
     Lanza ValidationError si la operacion no es valida.
+
+    El select_for_update() se ejecuta dentro del bloque atomic para
+    garantizar que el lock de fila y la escritura ocurran en la misma
+    transaccion, evitando condiciones de carrera en concurrencia alta.
     """
     if cantidad <= 0:
         raise ValidationError('La cantidad debe ser mayor a cero.')
 
-    try:
-        producto = Producto.objects.select_for_update().get(
-            id=producto_id, is_active=True
-        )
-    except Producto.DoesNotExist:
-        raise ValidationError('Producto no encontrado o inactivo.')
-
     cantidad = Decimal(str(cantidad))
 
     with transaction.atomic():
+        try:
+            producto = Producto.objects.select_for_update().get(
+                id=producto_id, is_active=True
+            )
+        except Producto.DoesNotExist:
+            raise ValidationError('Producto no encontrado o inactivo.')
+
         if tipo == Movimiento.ENTRADA:
             producto.stock_actual += cantidad
 
         elif tipo == Movimiento.SALIDA:
             if producto.stock_actual < cantidad:
                 raise ValidationError(
-                    f'Stock insuficiente. '
-                    f'Disponible: {producto.stock_actual}, '
-                    f'Solicitado: {cantidad}'
+                    f'Stock insuficiente — Disponible: {producto.stock_actual}, Solicitado: {cantidad}'
                 )
             producto.stock_actual -= cantidad
 
@@ -60,7 +62,7 @@ def obtener_resumen_movimientos(dias=7):
     Usado por el endpoint del dashboard.
     """
     from django.utils import timezone
-    from django.db.models import Sum, Q
+    from django.db.models import Sum
     from datetime import timedelta
 
     hoy = timezone.now().date()

@@ -21,8 +21,6 @@
     body{font-family:var(--font);background:var(--bg);
          color:var(--t1);font-size:13px;line-height:1.5}
     .shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
-
-    /* TOPBAR */
     .topbar{display:flex;align-items:center;gap:12px;padding:0 20px;
       height:56px;flex-shrink:0;
       background:linear-gradient(135deg,#6b0000 0%,#8C2020 40%,#AD3333 100%)}
@@ -30,175 +28,225 @@
       background:rgba(255,255,255,0.15);display:flex;
       align-items:center;justify-content:center;flex-shrink:0;
       border:1px solid rgba(255,255,255,0.2)}
-    .tb-brand{font-size:14px;font-weight:700;color:#fff;
-      letter-spacing:-0.01em}
+    .tb-brand{font-size:14px;font-weight:700;color:#fff;letter-spacing:-0.01em}
     .tb-brand span{font-weight:400;opacity:0.55;font-size:11px}
     .tb-divider{width:1px;height:22px;background:rgba(255,255,255,0.12)}
-    .tb-search{display:flex;align-items:center;gap:8px;
-      background:rgba(255,255,255,0.1);
-      border:1px solid rgba(255,255,255,0.15);
-      border-radius:8px;padding:6px 12px;flex:1;max-width:340px}
-    .tb-search-txt{font-size:12px;color:rgba(255,255,255,0.5);flex:1}
-    .tb-kbd{font-size:10px;padding:1px 6px;
-      border:1px solid rgba(255,255,255,0.15);border-radius:4px;
-      color:rgba(255,255,255,0.4);font-family:var(--mono)}
     .tb-spacer{flex:1}
     .tb-user{display:flex;align-items:center;gap:9px;margin-left:4px;
       padding:5px 10px;border-radius:8px;
-      border:1px solid rgba(255,255,255,0.12);cursor:pointer}
+      border:1px solid rgba(255,255,255,0.12);cursor:pointer;position:relative}
     .tb-avatar{width:28px;height:28px;border-radius:50%;
-      background:rgba(255,255,255,0.2);
-      border:1.5px solid rgba(255,255,255,0.4);
+      background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.4);
       display:flex;align-items:center;justify-content:center;
       font-size:10px;font-weight:700;color:#fff}
     .tb-user-name{font-size:12px;font-weight:600;color:#fff}
     .tb-user-role{font-size:10px;color:rgba(255,255,255,0.5)}
-
-    /* BODY */
     .body{display:flex;flex:1;overflow:hidden}
-
-    /* SIDEBAR */
-    .sidebar{width:208px;flex-shrink:0;display:flex;
-      flex-direction:column;overflow-y:auto;
+    .sidebar{width:208px;flex-shrink:0;display:flex;flex-direction:column;
+      overflow-y:auto;
       background:linear-gradient(180deg,#fff 0%,#fff8f8 60%,#FDF2F2 100%);
       border-right:1px solid var(--brd)}
-    .sb-brand-strip{padding:14px 16px 10px;
-      border-bottom:1px solid var(--brl)}
-    .sb-brand-label{font-size:9px;font-weight:700;
-      letter-spacing:0.1em;text-transform:uppercase;
-      color:var(--r);margin-bottom:2px}
-    .sb-brand-name{font-size:11px;font-weight:600;
-      color:var(--t2);line-height:1.3}
-    .sb-section{font-size:9px;font-weight:700;
-      letter-spacing:0.1em;color:var(--t4);
+    .sb-brand-strip{padding:14px 16px 10px;border-bottom:1px solid var(--brl)}
+    .sb-brand-label{font-size:9px;font-weight:700;letter-spacing:0.1em;
+      text-transform:uppercase;color:var(--r);margin-bottom:2px}
+    .sb-brand-name{font-size:11px;font-weight:600;color:var(--t2);line-height:1.3}
+    .sb-section{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--t4);
       padding:12px 16px 4px;text-transform:uppercase}
-    .sb-item{display:flex;align-items:center;gap:10px;
-      padding:8px 16px;font-size:12px;font-weight:500;
-      color:var(--t3);cursor:pointer;position:relative;
-      transition:all 0.12s;margin:1px 8px;border-radius:8px;
+    .sb-item{display:flex;align-items:center;gap:10px;padding:8px 16px;
+      font-size:12px;font-weight:500;color:var(--t3);cursor:pointer;
+      position:relative;transition:all 0.12s;margin:1px 8px;border-radius:8px;
       text-decoration:none}
     .sb-item:hover{background:var(--rl);color:var(--rd)}
-    .sb-item.active{
-      background:linear-gradient(135deg,#FDF2F2 0%,#F5E6E6 100%);
-      color:var(--rd);font-weight:600;
-      border:1px solid #F0D0D0}
-    .sb-item.active::before{content:'';position:absolute;
-      left:-8px;top:50%;transform:translateY(-50%);
-      width:3px;height:18px;background:var(--r);
+    .sb-item.active{background:linear-gradient(135deg,#FDF2F2 0%,#F5E6E6 100%);
+      color:var(--rd);font-weight:600;border:1px solid #F0D0D0}
+    .sb-item.active::before{content:'';position:absolute;left:-8px;top:50%;
+      transform:translateY(-50%);width:3px;height:18px;background:var(--r);
       border-radius:0 2px 2px 0}
-    .sb-icon{width:16px;height:16px;flex-shrink:0;
-      display:flex;align-items:center;justify-content:center;opacity:0.6}
+    .sb-icon{width:16px;height:16px;flex-shrink:0;display:flex;
+      align-items:center;justify-content:center;opacity:0.6}
     .sb-item.active .sb-icon,.sb-item:hover .sb-icon{opacity:1}
-    .sb-badge{margin-left:auto;font-size:10px;font-weight:700;
-      padding:1px 7px;border-radius:20px}
-    .sb-badge-red{background:var(--db);color:var(--dt)}
-    .sb-badge-yellow{background:var(--wb);color:var(--wt)}
-    .sb-footer{margin-top:auto;padding:12px 16px;
-      border-top:1px solid var(--brd)}
-
-    /* MAIN */
+    .sb-footer{margin-top:auto;padding:12px 16px;border-top:1px solid var(--brd)}
     .main{flex:1;overflow-y:auto;padding:20px;min-width:0;
       background:linear-gradient(to bottom right,
       #FFF 0%,#FFF 28%,rgba(173,51,51,0.12) 55%,
       rgba(173,51,51,0.48) 78%,rgba(173,51,51,0.70) 100%)}
-
-    /* PAGE HEADER */
-    .ph{display:flex;align-items:flex-start;
-      justify-content:space-between;margin-bottom:16px;gap:12px}
-    .ph-eyebrow{font-size:10px;font-weight:600;
-      letter-spacing:0.08em;text-transform:uppercase;
-      color:var(--r);margin-bottom:3px}
-    .ph-title{font-size:18px;font-weight:700;
-      color:var(--t1);letter-spacing:-0.02em}
+    .ph{display:flex;align-items:flex-start;justify-content:space-between;
+      margin-bottom:16px;gap:12px}
+    .ph-eyebrow{font-size:10px;font-weight:600;letter-spacing:0.08em;
+      text-transform:uppercase;color:var(--r);margin-bottom:3px}
+    .ph-title{font-size:18px;font-weight:700;color:var(--t1);letter-spacing:-0.02em}
     .ph-sub{font-size:12px;color:var(--t3);margin-top:2px}
     .ph-actions{display:flex;gap:8px;flex-shrink:0;margin-top:2px}
-
-    /* BOTONES */
-    .btn{font-size:12px;font-weight:600;padding:7px 14px;
-      border-radius:8px;border:1px solid var(--brd);cursor:pointer;
-      font-family:var(--font);background:var(--sur);color:var(--t2);
-      display:flex;align-items:center;gap:6px;transition:all 0.12s}
+    .btn{font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;
+      border:1px solid var(--brd);cursor:pointer;font-family:var(--font);
+      background:var(--sur);color:var(--t2);display:flex;align-items:center;
+      gap:6px;transition:all 0.12s}
     .btn:hover{border-color:var(--r);color:var(--r);background:var(--rp)}
     .btn-primary{background:linear-gradient(135deg,var(--rd),var(--r));
       color:#fff;border-color:var(--rd)}
     .btn-primary:hover{background:linear-gradient(135deg,#6b0000,var(--rd));
       border-color:#6b0000;color:#fff}
-
-    /* PANEL */
-    .panel{background:rgba(255,255,255,0.85);
-      border:1px solid var(--brd);border-radius:12px;overflow:hidden}
-    .panel-header{display:flex;align-items:center;
-      justify-content:space-between;padding:12px 16px;
-      border-bottom:1px solid var(--brl)}
+    .panel{background:rgba(255,255,255,0.85);border:1px solid var(--brd);
+      border-radius:12px;overflow:hidden}
+    .panel-header{display:flex;align-items:center;justify-content:space-between;
+      padding:12px 16px;border-bottom:1px solid var(--brl)}
     .panel-title{font-size:12px;font-weight:700;color:var(--t1)}
-
-    /* TABLA */
     table.data{width:100%;border-collapse:collapse}
-    table.data thead th{font-size:10px;font-weight:700;
-      color:var(--t4);text-transform:uppercase;
-      letter-spacing:0.06em;padding:8px 12px;text-align:left;
-      background:var(--rp);border-bottom:1px solid var(--brd)}
+    table.data thead th{font-size:10px;font-weight:700;color:var(--t4);
+      text-transform:uppercase;letter-spacing:0.06em;padding:8px 12px;
+      text-align:left;background:var(--rp);border-bottom:1px solid var(--brd)}
     table.data tbody td{font-size:12px;padding:10px 12px;
       border-bottom:1px solid var(--brl);color:var(--t2)}
     table.data tbody tr:hover td{background:var(--rp)}
-
-    /* PILLS */
-    .pill{display:inline-flex;align-items:center;gap:4px;
-      font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+    .pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;
+      font-weight:700;padding:2px 8px;border-radius:20px}
     .pill-ok{background:var(--sb);color:var(--st)}
     .pill-warn{background:var(--wb);color:var(--wt)}
     .pill-danger{background:var(--db);color:var(--dt)}
-
-    /* MENSAJES */
-    .msg{padding:10px 14px;border-radius:8px;font-size:12px;
-      margin-bottom:12px}
-    .msg-ok{background:var(--sb);color:var(--st)}
-    .msg-error{background:var(--db);color:var(--dt)}
+    .toast-ok{position:fixed;bottom:24px;right:24px;z-index:999;
+      padding:12px 20px;border-radius:10px;font-size:12px;font-weight:600;
+      background:#16A34A;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.15);
+      animation:slideIn 0.3s ease}
+    .toast-err{position:fixed;bottom:24px;right:24px;z-index:999;
+      padding:12px 20px;border-radius:10px;font-size:12px;font-weight:600;
+      background:#DC2626;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.15);
+      animation:slideIn 0.3s ease}
+    @keyframes slideIn{
+      from{transform:translateX(100px);opacity:0}
+      to{transform:translateX(0);opacity:1}
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 <div class="shell">
 
-  <!-- TOPBAR -->
+  {# ════════════════════════════════════════════════════════════ TOPBAR ══ #}
   <header class="topbar">
     <div class="tb-logo">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="3" width="7" height="7" rx="1.5" fill="white" opacity="0.9"/>
-        <rect x="14" y="3" width="7" height="7" rx="1.5" fill="white" opacity="0.55"/>
-        <rect x="3" y="14" width="7" height="7" rx="1.5" fill="white" opacity="0.55"/>
+        <rect x="3"  y="3"  width="7" height="7" rx="1.5" fill="white" opacity="0.9"/>
+        <rect x="14" y="3"  width="7" height="7" rx="1.5" fill="white" opacity="0.55"/>
+        <rect x="3"  y="14" width="7" height="7" rx="1.5" fill="white" opacity="0.55"/>
         <rect x="14" y="14" width="7" height="7" rx="1.5" fill="white" opacity="0.9"/>
       </svg>
     </div>
+
     <div class="tb-brand">InvPro <span>· Unipamplona</span></div>
     <div class="tb-divider"></div>
-    <div class="tb-search">
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
-        stroke="rgba(255,255,255,0.45)" stroke-width="1.8">
-        <circle cx="6.5" cy="6.5" r="4.5"/>
-        <path d="M10.5 10.5l3.5 3.5" stroke-linecap="round"/>
-      </svg>
-      <span class="tb-search-txt">Buscar productos, movimientos…</span>
-      <span class="tb-kbd">⌘K</span>
-    </div>
     <div class="tb-spacer"></div>
-    <div class="tb-user">
-      <div class="tb-avatar">
-        {{ request.user.username|first|upper }}
-      </div>
+
+    {# ── Menú de usuario ─────────────────────────────────────────────── #}
+    <div class="tb-user" onclick="toggleUserMenu()">
+      <div class="tb-avatar">{{ request.user.username|first|upper }}</div>
       <div>
         <div class="tb-user-name">
           {{ request.user.get_full_name|default:request.user.username }}
         </div>
-        <div class="tb-user-role">{{ request.user.rol|capfirst }}</div>
+        <div class="tb-user-role">
+          {% if request.user.rol == 'admin' %}Administrador
+          {% elif request.user.rol == 'operador' %}Operador
+          {% else %}Consultor{% endif %}
+        </div>
       </div>
-    </div>
-  </header>
+      <svg width="10" height="10" viewBox="0 0 16 16" fill="none"
+        stroke="rgba(255,255,255,0.6)" stroke-width="2">
+        <path d="M4 6l4 4 4-4" stroke-linecap="round"/>
+      </svg>
 
-  <!-- BODY -->
+      {# ── Dropdown ────────────────────────────────────────────────────── #}
+      <div id="user-menu"
+        style="display:none;position:absolute;top:44px;right:0;
+          background:#fff;border:1px solid #F0E0E0;border-radius:10px;
+          min-width:190px;box-shadow:0 8px 24px rgba(0,0,0,0.12);
+          z-index:200;overflow:hidden">
+
+        {# Cabecera nombre + rol #}
+        <div style="padding:12px 14px;border-bottom:1px solid #FAF0F0">
+          <div style="font-size:12px;font-weight:700;color:#1a0808">
+            {{ request.user.username }}
+          </div>
+          <div style="font-size:10px;color:#b07070;margin-top:2px">
+            {% if request.user.rol == 'admin' %}Administrador
+            {% elif request.user.rol == 'operador' %}Operador
+            {% else %}Consultor{% endif %}
+          </div>
+        </div>
+
+        {# ── Bloque 2FA — lee "tiene_2fa" del contexto del view/processor ── #}
+        {% if tiene_2fa %}
+
+          {# Estado: 2FA activo → botón para desactivar #}
+          <form method="POST" action="{% url '2fa_disable' %}" style="margin:0">
+            {% csrf_token %}
+            <button type="submit"
+              style="width:100%;display:flex;align-items:center;gap:8px;
+                padding:10px 14px;font-size:12px;font-weight:500;color:#16A34A;
+                background:none;border:none;cursor:pointer;
+                font-family:var(--font);text-align:left"
+              onmouseover="this.style.background='#F0FDF4'"
+              onmouseout="this.style.background='transparent'">
+              {# Candado cerrado con checkmark — indica 2FA activo #}
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+                stroke="#16A34A" stroke-width="1.8" aria-hidden="true">
+                <rect x="3" y="7" width="10" height="8" rx="1.5"/>
+                <path d="M5 7V5a3 3 0 016 0v2" stroke-linecap="round"/>
+                <path d="M6 11l1.5 1.5L10 9"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              2FA activo
+            </button>
+          </form>
+
+        {% else %}
+
+          {# Estado: 2FA inactivo → enlace al setup #}
+          <a href="{% url '2fa_setup' %}"
+            style="display:flex;align-items:center;gap:8px;padding:10px 14px;
+              font-size:12px;font-weight:500;color:#1a0808;text-decoration:none"
+            onmouseover="this.style.background='#FDF2F2'"
+            onmouseout="this.style.background='transparent'">
+            {# Candado abierto — indica 2FA inactivo #}
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+              stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <rect x="3" y="7" width="10" height="8" rx="1.5"/>
+              <path d="M5 7V5a3 3 0 016 0v2" stroke-linecap="round"/>
+            </svg>
+            Activar 2FA
+          </a>
+
+        {% endif %}
+        {# ── fin bloque 2FA ──────────────────────────────────────────────── #}
+
+        {# Separador #}
+        <div style="height:1px;background:#FAF0F0;margin:0 14px"></div>
+
+        {# Cerrar sesión #}
+        <a href="{% url 'logout' %}"
+          style="display:flex;align-items:center;gap:8px;padding:10px 14px;
+            font-size:12px;font-weight:500;color:#DC2626;text-decoration:none"
+          onmouseover="this.style.background='#FEF2F2'"
+          onmouseout="this.style.background='transparent'">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+            stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3M10 11l4-4-4-4M14 8H6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Cerrar sesión
+        </a>
+
+      </div>
+      {# ── fin dropdown ────────────────────────────────────────────────── #}
+
+    </div>
+    {# ── fin menú de usuario ─────────────────────────────────────────── #}
+
+  </header>
+  {# ══════════════════════════════════════════════════════════ fin TOPBAR ══ #}
+
   <div class="body">
 
-    <!-- SIDEBAR -->
+    {# ══════════════════════════════════════════════════════════ SIDEBAR ══ #}
     <aside class="sidebar">
       <div class="sb-brand-strip">
         <div class="sb-brand-label">Sistema de Inventario</div>
@@ -207,8 +255,8 @@
 
       <div class="sb-section">Principal</div>
 
-      <a href="{% url 'dashboard' %}" class="sb-item
-        {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <a href="{% url 'dashboard' %}"
+        class="sb-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         <span class="sb-icon">
           <svg width="15" height="15" viewBox="0 0 16 16" fill="none"
             stroke="currentColor" stroke-width="1.8">
@@ -222,62 +270,77 @@
       </a>
 
       {% if request.user.es_admin %}
-      <a href="{% url 'productos' %}" class="sb-item
-        {% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
-        <span class="sb-icon">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"
-            stroke="currentColor" stroke-width="1.8">
-            <path d="M2 4l6-2 6 2v8l-6 2-6-2V4z"/>
-            <path d="M8 2v12M2 4l6 3 6-3"/>
-          </svg>
-        </span>
-        Productos
-      </a>
 
-      <a href="{% url 'movimientos' %}" class="sb-item
-        {% if request.resolver_match.url_name == 'movimientos' %}active{% endif %}">
-        <span class="sb-icon">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"
-            stroke="currentColor" stroke-width="1.8">
-            <path d="M8 2v12M3 7l5-5 5 5" stroke-linecap="round"/>
-          </svg>
-        </span>
-        Movimientos
-      </a>
+        <a href="{% url 'productos' %}"
+          class="sb-item {% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
+          <span class="sb-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <path d="M2 4l6-2 6 2v8l-6 2-6-2V4z"/>
+              <path d="M8 2v12M2 4l6 3 6-3"/>
+            </svg>
+          </span>
+          Productos
+        </a>
 
-      <a href="{% url 'categorias' %}" class="sb-item
-        {% if request.resolver_match.url_name == 'categorias' %}active{% endif %}">
-        <span class="sb-icon">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"
-            stroke="currentColor" stroke-width="1.8">
-            <path d="M1 4h14M1 8h9M1 12h6" stroke-linecap="round"/>
-          </svg>
-        </span>
-        Categorias
-      </a>
+        <a href="{% url 'movimientos' %}"
+          class="sb-item {% if request.resolver_match.url_name == 'movimientos' %}active{% endif %}">
+          <span class="sb-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <path d="M8 2v12M3 7l5-5 5 5" stroke-linecap="round"/>
+            </svg>
+          </span>
+          Movimientos
+        </a>
+
+        <a href="{% url 'categorias' %}"
+          class="sb-item {% if request.resolver_match.url_name == 'categorias' %}active{% endif %}">
+          <span class="sb-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"
+              stroke="currentColor" stroke-width="1.8">
+              <path d="M1 4h14M1 8h9M1 12h6" stroke-linecap="round"/>
+            </svg>
+          </span>
+          Categorías
+        </a>
+
       {% endif %}
 
       <div class="sb-footer">
         <a href="{% url 'logout' %}"
-          style="font-size:11px;color:var(--t3);text-decoration:none;
-          font-weight:500">Cerrar sesion</a>
+          style="font-size:11px;color:var(--t3);text-decoration:none;font-weight:500">
+          Cerrar sesión
+        </a>
       </div>
     </aside>
+    {# ══════════════════════════════════════════════════════ fin SIDEBAR ══ #}
 
-    <!-- MAIN -->
+    {# ══════════════════════════════════════════════════════════════ MAIN ══ #}
     <main class="main">
-      {% if messages %}
-        {% for msg in messages %}
-        <div class="msg {% if msg.tags == 'success' %}msg-ok{% else %}msg-error{% endif %}">
-          {{ msg }}
-        </div>
-        {% endfor %}
-      {% endif %}
       {% block content %}{% endblock %}
     </main>
+    {# ══════════════════════════════════════════════════════════ fin MAIN ══ #}
 
   </div>
 </div>
+
+<script>
+  function toggleUserMenu() {
+    var menu = document.getElementById('user-menu');
+    menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
+  }
+
+  /* Cierra el dropdown al hacer clic fuera */
+  document.addEventListener('click', function (e) {
+    var tb = document.querySelector('.tb-user');
+    if (tb && !tb.contains(e.target)) {
+      var menu = document.getElementById('user-menu');
+      if (menu) menu.style.display = 'none';
+    }
+  });
+</script>
+
 {% block extra_js %}{% endblock %}
 </body>
 </html>

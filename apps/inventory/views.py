@@ -3,7 +3,7 @@ from django.contrib import messages
 from apps.accounts.decorators import login_required_custom, admin_required
 
 
-@login_required_custom
+@admin_required
 def vista_dashboard(request):
     return render(request, 'inventory/dashboard.html')
 
@@ -49,6 +49,49 @@ def crear_producto(request):
             stock_minimo=stock_min, precio_unitario=precio,
         )
         messages.success(request, f'Producto {nombre} creado correctamente')
+    return redirect('productos')
+
+
+@admin_required
+def editar_producto(request, pk):
+    from apps.inventory.models import Producto, Categoria
+    if request.method == 'POST':
+        nombre       = request.POST.get('nombre', '').strip()
+        sku          = request.POST.get('sku', '').strip()
+        categoria_id = request.POST.get('categoria_id', '')
+        stock_min    = request.POST.get('stock_minimo', 0)
+        precio       = request.POST.get('precio_unitario', 0)
+
+        if not nombre or not sku:
+            messages.error(request, 'Nombre y SKU son obligatorios')
+            return redirect('productos')
+
+        try:
+            prod = Producto.objects.get(pk=pk, is_active=True)
+        except Producto.DoesNotExist:
+            messages.error(request, 'Producto no encontrado')
+            return redirect('productos')
+
+        if Producto.objects.filter(sku=sku).exclude(pk=pk).exists():
+            messages.error(request, f'El SKU {sku} ya está en uso')
+            return redirect('productos')
+
+        try:
+            cat = Categoria.objects.get(id=categoria_id)
+        except Categoria.DoesNotExist:
+            messages.error(request, 'Categoría no válida')
+            return redirect('productos')
+
+        prod.nombre          = nombre
+        prod.sku             = sku
+        prod.categoria       = cat
+        prod.stock_minimo    = stock_min
+        prod.precio_unitario = precio
+        prod.save(update_fields=[
+            'nombre', 'sku', 'categoria',
+            'stock_minimo', 'precio_unitario', 'updated_at'
+        ])
+        messages.success(request, f'Producto {nombre} actualizado')
     return redirect('productos')
 
 
@@ -100,7 +143,7 @@ def registrar_movimiento(request):
             messages.success(request,
                 f'Movimiento {tipo} registrado — {mov.producto.sku}')
         except ValidationError as e:
-            messages.error(request, str(e))
+            messages.error(request, e.message)
         except Exception as e:
             messages.error(request, f'Error: {str(e)}')
 
@@ -130,6 +173,26 @@ def crear_categoria(request):
             return redirect('categorias')
         Categoria.objects.create(nombre=nombre, descripcion=desc)
         messages.success(request, f'Categoria {nombre} creada correctamente')
+    return redirect('categorias')
+
+
+@admin_required
+def editar_categoria(request, pk):
+    from apps.inventory.models import Categoria
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        desc   = request.POST.get('descripcion', '').strip()
+        if not nombre:
+            messages.error(request, 'El nombre es obligatorio')
+            return redirect('categorias')
+        try:
+            cat = Categoria.objects.get(pk=pk)
+            cat.nombre      = nombre
+            cat.descripcion = desc
+            cat.save(update_fields=['nombre', 'descripcion'])
+            messages.success(request, f'Categoria {nombre} actualizada')
+        except Categoria.DoesNotExist:
+            messages.error(request, 'Categoria no encontrada')
     return redirect('categorias')
 
 

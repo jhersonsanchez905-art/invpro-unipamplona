@@ -23,12 +23,20 @@
 <div class="panel">
   <div class="panel-header">
     <span class="panel-title">Inventario actual — Solo lectura</span>
+    <input id="buscador-con" type="text" placeholder="Buscar producto o SKU..."
+      oninput="filtrarCon()"
+      style="border:1px solid #F0E0E0;border-radius:8px;
+      padding:6px 12px;font-size:12px;font-family:'Montserrat',sans-serif;
+      outline:none;width:220px">
   </div>
-  <table class="data">
+  <table class="data" id="tabla-con">
     <thead>
       <tr>
-        <th>SKU</th><th>Producto</th><th>Categoria</th>
-        <th>Stock actual</th><th>Estado</th>
+        <th>SKU</th>
+        <th>Producto</th>
+        <th>Categoria</th>
+        <th style="text-align:center">Stock actual</th>
+        <th style="text-align:center">Estado</th>
       </tr>
     </thead>
     <tbody>
@@ -37,10 +45,10 @@
         <td style="font-family:monospace;color:#AD3333">{{ p.sku }}</td>
         <td style="font-weight:600">{{ p.nombre }}</td>
         <td>{{ p.categoria.nombre }}</td>
-        <td style="font-weight:700;
+        <td style="font-weight:700;text-align:center;
           color:{% if p.tiene_alerta %}#DC2626{% else %}#1a0808{% endif %}">
           {{ p.stock_actual }}</td>
-        <td>
+        <td style="text-align:center">
           {% if p.tiene_alerta %}
           <span class="pill pill-danger">Alerta</span>
           {% else %}
@@ -55,4 +63,17 @@
     </tbody>
   </table>
 </div>
+
+<script>
+function filtrarCon() {
+  var texto = document.getElementById('buscador-con').value.toLowerCase();
+  var filas = document.querySelectorAll('#tabla-con tbody tr');
+  filas.forEach(function(fila) {
+    var sku    = fila.cells[0] ? fila.cells[0].textContent.toLowerCase() : '';
+    var nombre = fila.cells[1] ? fila.cells[1].textContent.toLowerCase() : '';
+    fila.style.display = (sku.includes(texto) || nombre.includes(texto)) ? '' : 'none';
+  });
+}
+</script>
+
 {% endblock %}

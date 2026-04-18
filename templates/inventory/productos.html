@@ -22,14 +22,6 @@
   {% endif %}
 </div>
 
-{% if messages %}
-  {% for msg in messages %}
-  <div class="msg {% if msg.tags == 'success' %}msg-ok{% else %}msg-error{% endif %}">
-    {{ msg }}
-  </div>
-  {% endfor %}
-{% endif %}
-
 <!-- Barra de busqueda -->
 <div style="background:rgba(255,255,255,0.85);border:1px solid #F0E0E0;
   border-radius:12px;padding:12px 16px;margin-bottom:12px;
@@ -62,9 +54,9 @@
         <th>SKU</th>
         <th>Nombre</th>
         <th>Categoria</th>
-        <th>Stock actual</th>
-        <th>Stock min.</th>
-        <th>Estado</th>
+        <th style="text-align:center">Stock actual</th>
+        <th style="text-align:center">Stock min.</th>
+        <th style="text-align:center">Estado</th>
         {% if request.user.es_admin %}<th></th>{% endif %}
       </tr>
     </thead>
@@ -75,12 +67,12 @@
           color:#AD3333;font-size:11px">{{ p.sku }}</td>
         <td style="font-weight:600;color:#1a0808">{{ p.nombre }}</td>
         <td>{{ p.categoria.nombre }}</td>
-        <td style="font-weight:700;text-align:right;
+        <td style="font-weight:700;text-align:center;
           color:{% if p.tiene_alerta %}#DC2626{% else %}#1a0808{% endif %}">
           {{ p.stock_actual }}</td>
-        <td style="text-align:right;color:#7a3a3a">
+        <td style="text-align:center;color:#7a3a3a">
           {{ p.stock_minimo }}</td>
-        <td>
+        <td style="text-align:center">
           {% if p.tiene_alerta %}
           <span class="pill pill-danger">Alerta</span>
           {% else %}
@@ -88,11 +80,26 @@
           {% endif %}
         </td>
         {% if request.user.es_admin %}
-        <td style="text-align:right">
+        <td style="text-align:right;white-space:nowrap">
+          {# ── Botón Editar ── #}
+          <button
+            onclick="abrirEditar(
+              '{{ p.id }}',
+              '{{ p.nombre|escapejs }}',
+              '{{ p.sku|escapejs }}',
+              '{{ p.categoria.id }}',
+              '{{ p.stock_minimo }}',
+              '{{ p.precio_unitario }}')"
+            class="btn"
+            style="font-size:11px;padding:4px 10px;margin-right:6px">
+            Editar
+          </button>
+          {# ── Botón Eliminar ── #}
           <form method="POST"
             action="{% url 'eliminar_producto' p.id %}"
             style="display:inline"
-            onsubmit="return confirm('Eliminar {{ p.nombre }}?')">
+            onsubmit="event.preventDefault();
+              confirmarEliminar('{{ p.nombre|escapejs }}', this)">
             {% csrf_token %}
             <button type="submit" class="btn"
               style="color:#DC2626;border-color:#FEE2E2;
@@ -116,6 +123,7 @@
 </div>
 
 {% if request.user.es_admin %}
+
 <!-- MODAL NUEVO PRODUCTO -->
 <div id="modal-prod" style="display:none;position:fixed;inset:0;
   background:rgba(0,0,0,0.4);z-index:100;
@@ -192,27 +200,162 @@
     </form>
   </div>
 </div>
+
+<!-- MODAL CONFIRMACION ELIMINAR -->
+<div id="modal-confirm" style="display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.4);z-index:200;
+  align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px;
+    width:100%;max-width:380px;margin:20px;text-align:center">
+    <div style="width:48px;height:48px;border-radius:50%;
+      background:#FEE2E2;display:flex;align-items:center;
+      justify-content:center;margin:0 auto 16px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="#DC2626" stroke-width="2">
+        <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div style="font-size:16px;font-weight:700;color:#1a0808;
+      margin-bottom:8px">Eliminar producto</div>
+    <div style="font-size:13px;color:#7a3a3a;margin-bottom:24px">
+      ¿Estás seguro que deseas eliminar
+      <strong id="confirm-nombre"></strong>?
+      Esta acción no se puede deshacer.
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button onclick="cerrarConfirm()" class="btn"
+        style="min-width:100px">Cancelar</button>
+      <button onclick="ejecutarEliminar()" class="btn btn-primary"
+        style="min-width:100px;background:linear-gradient(135deg,#991B1B,#DC2626);
+        border-color:#991B1B">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PRODUCTO -->
+<div id="modal-editar-prod" style="display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.4);z-index:100;
+  align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px;
+    width:100%;max-width:480px;margin:20px">
+    <div style="font-size:16px;font-weight:700;color:#1a0808;
+      margin-bottom:20px">Editar producto</div>
+    <form id="form-editar-prod" method="POST" action="">
+      {% csrf_token %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;
+            color:#3d1010;text-transform:uppercase;
+            letter-spacing:0.05em;margin-bottom:6px">Nombre</label>
+          <input id="ep-nombre" type="text" name="nombre" required
+            style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+            padding:8px 12px;font-size:12px;
+            font-family:'Montserrat',sans-serif;outline:none">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;
+            color:#3d1010;text-transform:uppercase;
+            letter-spacing:0.05em;margin-bottom:6px">SKU</label>
+          <input id="ep-sku" type="text" name="sku" required
+            style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+            padding:8px 12px;font-size:12px;
+            font-family:'Montserrat',sans-serif;outline:none">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;
+            color:#3d1010;text-transform:uppercase;
+            letter-spacing:0.05em;margin-bottom:6px">Categoría</label>
+          <select id="ep-cat" name="categoria_id" required
+            style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+            padding:8px 12px;font-size:12px;
+            font-family:'Montserrat',sans-serif;outline:none">
+            {% for cat in categorias %}
+            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;
+            color:#3d1010;text-transform:uppercase;
+            letter-spacing:0.05em;margin-bottom:6px">Stock mínimo</label>
+          <input id="ep-stock" type="number" name="stock_minimo" min="0"
+            style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+            padding:8px 12px;font-size:12px;
+            font-family:'Montserrat',sans-serif;outline:none">
+        </div>
+        <div style="grid-column:span 2">
+          <label style="display:block;font-size:11px;font-weight:600;
+            color:#3d1010;text-transform:uppercase;
+            letter-spacing:0.05em;margin-bottom:6px">Precio unitario</label>
+          <input id="ep-precio" type="number" name="precio_unitario" min="0"
+            style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+            padding:8px 12px;font-size:12px;
+            font-family:'Montserrat',sans-serif;outline:none">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+        <button type="button" class="btn"
+          onclick="document.getElementById('modal-editar-prod').style.display='none'">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endif %}
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
+// ── Filtro de tabla ──────────────────────────────────────────────────────────
 function filtrarTabla() {
-  const busq = document.getElementById('buscador').value.toLowerCase();
-  const cat  = document.getElementById('filtro-cat').value.toLowerCase();
+  const busq  = document.getElementById('buscador').value.toLowerCase();
+  const cat   = document.getElementById('filtro-cat').value.toLowerCase();
   const filas = document.querySelectorAll('#tabla-productos tbody tr');
-
   filas.forEach(fila => {
-    const sku    = fila.cells[0]?.textContent.toLowerCase() || '';
-    const nombre = fila.cells[1]?.textContent.toLowerCase() || '';
-    const catFila= fila.cells[2]?.textContent.toLowerCase() || '';
-
+    const sku     = fila.cells[0]?.textContent.toLowerCase() || '';
+    const nombre  = fila.cells[1]?.textContent.toLowerCase() || '';
+    const catFila = fila.cells[2]?.textContent.toLowerCase() || '';
     const matchBusq = !busq || nombre.includes(busq) || sku.includes(busq);
     const matchCat  = !cat  || catFila.includes(cat);
-
     fila.style.display = (matchBusq && matchCat) ? '' : 'none';
   });
+}
+
+// ── Confirmación de eliminación ──────────────────────────────────────────────
+let formEliminar = null;
+
+function confirmarEliminar(nombre, form) {
+  formEliminar = form;
+  document.getElementById('confirm-nombre').textContent = nombre;
+  document.getElementById('modal-confirm').style.display = 'flex';
+}
+
+function cerrarConfirm() {
+  document.getElementById('modal-confirm').style.display = 'none';
+  formEliminar = null;
+}
+
+function ejecutarEliminar() {
+  if (formEliminar) formEliminar.submit();
+}
+
+// ── Modal editar producto ────────────────────────────────────────────────────
+function abrirEditar(id, nombre, sku, catId, stockMin, precio) {
+  document.getElementById('ep-nombre').value = nombre;
+  document.getElementById('ep-sku').value    = sku;
+  document.getElementById('ep-stock').value  = stockMin;
+  document.getElementById('ep-precio').value = precio;
+  // Selecciona la opción correcta en el <select> de categoría
+  document.getElementById('ep-cat').value    = catId;
+  // Construye la URL con el UUID del producto
+  document.getElementById('form-editar-prod').action =
+    '/productos/' + id + '/editar/';
+  document.getElementById('modal-editar-prod').style.display = 'flex';
 }
 </script>
 {% endblock %}

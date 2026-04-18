@@ -15,11 +15,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # OTP — autenticación de dos factores
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    # Terceros
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'tailwind',
     'theme',
+    # InvPro · Unipamplona
     'apps.accounts',
     'apps.inventory',
     'apps.movements',
@@ -39,6 +44,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # OTP debe ir inmediatamente después de AuthenticationMiddleware
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -53,6 +60,7 @@ TEMPLATES = [{
         'django.template.context_processors.request',
         'django.contrib.auth.context_processors.auth',
         'django.contrib.messages.context_processors.messages',
+        'apps.accounts.context_processors.user_2fa_status',
     ]},
 }]
 
@@ -82,21 +90,16 @@ TIME_ZONE = 'America/Bogota'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 TAILWIND_APP_NAME = 'theme'
 CORS_ALLOW_ALL_ORIGINS = True
 
-# Archivos estaticos
-import os
+# ── Archivos estáticos ───────────────────────────────────────────────────────
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Produccion en Render
+# ── Producción en Render — sobreescribe DATABASES si DATABASE_URL está presente
 import dj_database_url
 DATABASE_URL = config('DATABASE_URL', default=None)
 if DATABASE_URL:

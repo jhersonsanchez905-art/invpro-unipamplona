@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Activar 2FA{% endblock %}
+{% block content %}
+<div style="max-width:420px;margin:40px auto">
+  <div class="panel" style="padding:32px">
+    <div class="ph-eyebrow">Seguridad</div>
+    <div class="ph-title" style="margin-bottom:4px">
+      Autenticación en dos pasos
+    </div>
+    <div class="ph-sub" style="margin-bottom:24px">
+      Escanea el código QR con Google Authenticator
+    </div>
+
+    <div style="text-align:center;margin-bottom:20px">
+      <img src="data:image/png;base64,{{ qr_b64 }}"
+        style="width:180px;height:180px;border:1px solid #F0E0E0;
+        border-radius:12px;padding:8px">
+    </div>
+
+    <div style="background:#FDF2F2;border-radius:8px;padding:10px 14px;
+      font-size:11px;color:#7a3a3a;margin-bottom:20px;text-align:center">
+      Abre Google Authenticator → + → Escanear código QR
+    </div>
+
+    <form method="POST" action="{% url '2fa_verify' %}">
+      {% csrf_token %}
+      <label style="display:block;font-size:11px;font-weight:600;
+        color:#3d1010;text-transform:uppercase;
+        letter-spacing:0.05em;margin-bottom:6px">
+        Ingresa el código de 6 dígitos para confirmar
+      </label>
+      <input type="text" name="token" maxlength="6"
+        placeholder="000000" autofocus required
+        style="width:100%;border:1px solid #F0E0E0;border-radius:8px;
+        padding:10px 14px;font-size:18px;text-align:center;
+        font-family:'JetBrains Mono',monospace;
+        letter-spacing:0.2em;outline:none;margin-bottom:16px">
+      <button type="submit" class="btn btn-primary"
+        style="width:100%;justify-content:center">
+        Verificar y activar 2FA
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
